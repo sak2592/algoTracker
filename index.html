@@ -1,0 +1,3472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoTracker — DSA · LLD · HLD Prep Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          // Palette ported from pfm_v9's :root CSS variables (--bg, --card-bg,
+          // --primary, --secondary, --danger, --warning, --purple, --pink,
+          // --cyan, --text, --text-muted, --border) so every existing utility
+          // class in this file (bg-surface, text-mute, border-line, bg-brand,
+          // etc.) repaints without touching the 3000+ lines of markup below.
+          bg: '#0b0f19',
+          surface: '#151b2b',
+          surface2: '#1e293b',
+          surface3: '#232f45',
+          line: '#1e293b',
+          line2: '#334155',
+          brand: { DEFAULT: '#6366f1', 2: '#06b6d4' },
+          accent: { DEFAULT: '#ec4899', 2: '#6366f1' },
+          easy: '#10b981',
+          medium: '#f59e0b',
+          hard: '#ef4444',
+          overdue: '#eab308',
+          ink: '#f8fafc',
+          mute: '#94a3b8',
+        },
+        fontFamily: {
+          mono: ['"JetBrains Mono"', 'monospace'],
+          sans: ['Inter', 'sans-serif'],
+        },
+        boxShadow: {
+          glow: '0 0 0 1px rgba(99,102,241,0.15), 0 8px 24px -8px rgba(99,102,241,0.25)',
+          card: '0 12px 32px -16px rgba(0,0,0,0.5)',
+          cta: '0 8px 24px -8px rgba(236,72,153,0.45)',
+        }
+      }
+    }
+  }
+</script>
+<style>
+
+  /* Global bump: Tailwind's text-xs/sm/base/etc and spacing scale are all
+     rem-based, so raising the root font-size scales every bit of text (and
+     the padding around it) proportionally across the whole app — like a
+     gentle zoom — instead of hand-editing hundreds of individual classes. */
+  html { font-size: 113%; }
+
+  * { scrollbar-width: thin; scrollbar-color: #334155 #151b2b; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #151b2b; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+  body { font-family: 'Inter', sans-serif; }
+  .font-num { font-family: 'JetBrains Mono', monospace; }
+
+  /* Ambient background glow, evokes a premium dashboard feel */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(600px 400px at 88% -5%, rgba(99,102,241,0.16), transparent 60%),
+      radial-gradient(500px 380px at 8% 8%, rgba(6,182,212,0.10), transparent 60%),
+      radial-gradient(700px 500px at 50% 110%, rgba(236,72,153,0.08), transparent 60%);
+  }
+
+  .cta-btn { background: linear-gradient(135deg, #ec4899, #6366f1); box-shadow: 0 8px 24px -8px rgba(236,72,153,0.45); transition: filter .15s ease, transform .15s ease; }
+  .cta-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+  .stat-card { position: relative; overflow: hidden; background: #161d33; border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--sc-accent, #6366f1); opacity: .9; }
+  .stat-card .stat-icon {
+    background: var(--sc-icon-bg, rgba(99,102,241,0.14));
+    color: var(--sc-accent, #6366f1);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .stat-card:hover { transform: translateY(-1px); border-color: var(--sc-border, #35415e) !important; box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
+  .stat-card:active { transform: translateY(0) scale(0.99); }
+  .stat-card.stat-card-glow { animation: statGlow .5s ease; }
+  @keyframes statGlow {
+    0% { box-shadow: 0 0 0 0 var(--sc-accent, rgba(99,102,241,0.5)); }
+    40% { box-shadow: 0 0 0 4px var(--sc-accent, rgba(99,102,241,0.28)); }
+    100% { box-shadow: 0 0 0 2px var(--sc-accent, rgba(99,102,241,0.22)); }
+  }
+  .stat-card.stat-card-active { border-color: var(--sc-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--sc-accent, rgba(99,102,241,0.22)); }
+  .stat-card-outline { border-width: 1px; }
+  .tab-btn.active { color: #f8fafc; border-color: #6366f1; background: linear-gradient(180deg, rgba(99,102,241,0.12), transparent); }
+  .progress-mode-btn { color: #94a3b8; background: transparent; border: 1px solid #232a3d; transition: color .15s ease, background .15s ease, border-color .15s ease; }
+  .progress-mode-btn:hover { color: #f8fafc; }
+  .progress-mode-btn.active { color: #06b6d4; background: rgba(6,182,212,0.12); border-color: rgba(6,182,212,0.4); }
+  .progress-bar-col { flex: 1 1 0; min-width: 0; display: flex; align-items: flex-end; justify-content: center; height: 100%; }
+  .progress-bar { width: 100%; max-width: 22px; margin: 0 auto; border-radius: 4px 4px 2px 2px; background: linear-gradient(180deg, #06b6d4, #6366f1); min-height: 3px; transition: height .25s ease, opacity .15s ease; cursor: pointer; position: relative; }
+  .progress-bar:hover { opacity: 0.8; }
+  .progress-bar.progress-bar-zero { background: #1a2033; min-height: 2px; cursor: default; }
+  .progress-bar.progress-bar-zero:hover { opacity: 1; }
+  .progress-bar-value { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 3px; font-size: 9px; font-family: 'JetBrains Mono', monospace; color: #94a3b8; white-space: nowrap; }
+  .weak-area-bar-track { background: #1a2033; border-radius: 999px; overflow: hidden; height: 6px; }
+  .weak-area-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f59e0b, #ef4444); }
+  .track-opt-btn { border-color: #1e293b; color: #94a3b8; background: #1e293b; }
+  .track-opt-btn.active[data-track="DSA"] { border-color: #6366f1; color: #f8fafc; background: rgba(99,102,241,0.14); }
+  .track-opt-btn.active[data-track="LLD"] { border-color: #06b6d4; color: #f8fafc; background: rgba(6,182,212,0.14); }
+  .track-opt-btn.active[data-track="HLD"] { border-color: #f472b6; color: #f8fafc; background: rgba(244,114,182,0.14); }
+  .track-view-card { will-change: transform; background: #131a2c; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+  .track-view-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
+  .track-view-card .track-accent { opacity: .9; background: var(--tv-accent, #6366f1); }
+  .track-view-card .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.14)); color: var(--tv-accent, #6366f1); border: 1px solid rgba(255,255,255,0.06); }
+  .track-view-card .track-count { color: var(--tv-accent, #6366f1); }
+  .track-view-card { border-color: var(--tv-border, #334155); }
+  .track-view-card.active { background: var(--tv-bg, #232f45); border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
+  .track-view-card.track-view-glow { animation: trackGlow .5s ease; }
+  @keyframes trackGlow {
+    0% { box-shadow: 0 0 0 0 var(--tv-accent, rgba(99,102,241,0.5)); }
+    40% { box-shadow: 0 0 0 4px var(--tv-accent, rgba(99,102,241,0.28)); }
+    100% { box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
+  }
+  .track-view-card.active .track-accent { opacity: 1; background: var(--tv-accent, #6366f1); }
+  .track-view-card.active .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.16)); color: var(--tv-accent, #6366f1); }
+  .track-view-card.active .track-count { color: var(--tv-accent, #6366f1); }
+  .track-view-card[data-track-view="All"] { --tv-accent: #94a3b8; --tv-icon-bg: rgba(148,163,184,0.14); --tv-bg: #232f45; --tv-border: #334155; }
+  .track-view-card[data-track-view="DSA"] { --tv-accent: #6366f1; --tv-icon-bg: rgba(99,102,241,0.14); --tv-bg: linear-gradient(180deg, rgba(99,102,241,0.08), #1e293b); --tv-border: rgba(99,102,241,0.4); }
+  .track-view-card[data-track-view="LLD"] { --tv-accent: #06b6d4; --tv-icon-bg: rgba(6,182,212,0.14); --tv-bg: linear-gradient(180deg, rgba(6,182,212,0.08), #1e293b); --tv-border: rgba(6,182,212,0.4); }
+  .track-view-card[data-track-view="HLD"] { --tv-accent: #f472b6; --tv-icon-bg: rgba(244,114,182,0.14); --tv-bg: linear-gradient(180deg, rgba(244,114,182,0.08), #1e293b); --tv-border: rgba(244,114,182,0.4); }
+  .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"] { background: var(--tv-bg); }
+  .tab-btn { border-color: transparent; color: #94a3b8; }
+  .tab-btn[data-tab="queue"] { border-color: #1e293b; background: #1e293b; position: relative; }
+  .tab-btn[data-tab="queue"].active { border-color: #6366f1; background: linear-gradient(180deg, rgba(99,102,241,0.12), #1e293b); }
+  /* Due-state indicator — plain color change, no animation. The header's
+     "glow" is now handled uniformly by .app-btn-ghost below (matching the
+     calendar pill and Add Problems button) instead of a one-off effect here. */
+  .tab-btn[data-tab="queue"]:has(#queue-badge:not(.hidden)) {
+    border-color: rgba(234,179,8,0.55);
+  }
+  .tab-btn[data-tab="queue"]:has(#queue-badge:not(.hidden)) i[data-lucide="repeat"] { color: #eab308; }
+  .tab-btn[data-tab="calendar"] { color: #f59e0b; }
+  .tab-btn[data-tab="calendar"].active { background: rgba(245,158,11,0.14); color: #f59e0b; }
+  .tab-btn[data-tab="ai"] { border-color: #1e293b; background: #1e293b; color: #06b6d4; }
+  .tab-btn[data-tab="ai"].active { border-color: #06b6d4; background: linear-gradient(180deg, rgba(6,182,212,0.14), #1e293b); color: #06b6d4; }
+  .ai-pick-card { background: #131a2c; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .btn-nailed {
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    color: #04140f;
+    box-shadow: 0 2px 10px -3px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .btn-nailed:hover { transform: translateY(-1px); box-shadow: 0 4px 16px -3px rgba(16,185,129,0.7), inset 0 1px 0 rgba(255,255,255,0.3); filter: brightness(1.05); }
+  .btn-nailed:active { transform: translateY(0) scale(0.98); box-shadow: 0 1px 6px -2px rgba(16,185,129,0.5); }
+  .btn-struggled {
+    background: rgba(239,68,68,0.08);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.35);
+    transition: transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .btn-struggled:hover { background: rgba(239,68,68,0.16); border-color: rgba(239,68,68,0.55); transform: translateY(-1px); }
+  .btn-struggled:active { transform: translateY(0) scale(0.98); }
+  .ai-pick-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.8s linear infinite; }
+  .heat-cell { transition: transform .12s ease; }
+  .heat-cell:hover { transform: scale(1.25); }
+  .fade-in { animation: fadeIn .25s ease both; }
+
+  /* ---- Ported from pfm_v9: header date-pill + sync-status pill ---- */
+  @keyframes alertBorderShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @keyframes alertShimmer { 0% { left: -60%; } 45% { left: 130%; } 100% { left: 130%; } }
+  .date-pill { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; color: #f8fafc; position: relative; overflow: hidden; border: 1px solid transparent;
+    background: radial-gradient(120% 200% at 100% 0%, rgba(99,102,241,0.22), transparent 60%), linear-gradient(120deg, #151b2b 45%, rgba(99,102,241,0.12) 200%);
+    box-shadow: 0 6px 18px -8px rgba(99,102,241,0.55), inset 0 0 0 1px rgba(255,255,255,0.04); }
+  .date-pill::before { content: ''; position: absolute; inset: 0; border-radius: 999px; padding: 1.3px; background: linear-gradient(115deg, #6366f1, #ec4899, #8b5cf6, #6366f1); background-size: 300% 300%; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.85; pointer-events: none; animation: alertBorderShift 6s ease-in-out infinite; }
+  .date-pill::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent); transform: skewX(-18deg); pointer-events: none; animation: alertShimmer 5.5s ease-in-out infinite; }
+  .date-pill i, .date-pill svg { color: #a5b4fc; position: relative; z-index: 1; width: 14px; height: 14px; }
+  .date-pill span { position: relative; z-index: 1; }
+  @media (max-width: 860px) { .date-pill span { display: none; } .date-pill { padding: 8px; } }
+  .sync-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 999px;
+    background: #ef4444;
+    border: 1px solid transparent;
+    color: #fff;
+    transition: background .2s ease, color .2s ease;
+    flex-shrink: 0;
+  }
+  .sync-status-pill svg { width: 16px; height: 16px; }
+  .sync-status-pill.not-connected { background: #ef4444; color: #fff; }
+  .sync-status-pill.error { background: #ef4444; color: #fff; }
+  .sync-status-pill.ok { background: #10b981; color: #04140f; }
+  .sync-status-pill.busy { background: #f59e0b; color: #1a1200; }
+  .sync-status-pill.busy i { animation: spin 0.8s linear infinite; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(4px);} to {opacity:1; transform: translateY(0);} }
+  input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,0.45); }
+  .diff-badge { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+  .row-enter { animation: fadeIn .2s ease both; }
+  .toast { animation: toastIn .25s ease both, toastOut .25s ease 2.3s forwards; }
+  @keyframes toastIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+  @keyframes toastOut { to { opacity:0; transform: translateY(10px);} }
+
+  /* =====================================================================
+     Header — plain CSS (no Tailwind utility classes), sized up a bit
+     closer to pfm_v9's header proportions (bigger logo mark, taller
+     top/bottom padding) instead of the previous compact Tailwind bar.
+     ===================================================================== */
+  .app-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid #1e293b; background: rgba(11,15,25,0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .app-header::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent); pointer-events: none; }
+  .app-header-inner { position: relative; max-width: 80rem; margin: 0 auto; padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .app-header-row { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .app-header-row::-webkit-scrollbar { display: none; }
+  .app-header-row > * { flex-shrink: 0; }
+  .app-header-spacer { min-width: 12px; }
+  .app-header-row-second { justify-content: flex-end; }
+  .app-logo { display: flex; align-items: center; gap: 12px; }
+  .app-logo-icon { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #6366f1, #06b6d4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(99,102,241,0.15), 0 8px 24px -8px rgba(99,102,241,0.35); }
+  .app-logo-icon svg { width: 27px; height: 27px; color: #fff; }
+  .app-logo-text { line-height: 1.3; }
+  .app-logo-title { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em; color: #f8fafc; margin: 0; }
+  .app-logo-subtitle { font-size: 0.7rem; color: #94a3b8; margin: 2px 0 0; }
+  @media (max-width: 640px) { .app-logo-subtitle { display: none; } }
+  .app-header-spacer { flex: 1 1 auto; }
+  .app-btn { border-radius: 10px; padding: 10px 16px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; border: 1px solid transparent; transition: border-color .15s ease, background .15s ease, transform .15s ease, filter .15s ease; white-space: nowrap; font-family: inherit; color: #f8fafc; }
+  .app-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .app-btn-cta {
+    position: relative;
+    padding: 11px 18px;
+    font-size: 0.88rem;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #ec4899, #6366f1);
+    font-weight: 600;
+    box-shadow: 0 8px 24px -8px rgba(236,72,153,0.45), 0 0 0 0 rgba(236,72,153,0.5);
+    animation: ctaGlowPulse 2.6s ease-in-out infinite;
+    z-index: 0;
+  }
+  .app-btn-cta svg { width: 18px; height: 18px; }
+  .app-btn-cta::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #ec4899, #a855f7, #6366f1, #ec4899);
+    background-size: 300% 300%;
+    z-index: -1;
+    opacity: .55;
+    filter: blur(10px);
+    animation: ctaGlowShift 4s ease infinite;
+  }
+  .app-btn-cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .app-btn-cta:hover::before { opacity: .85; filter: blur(14px); }
+  @keyframes ctaGlowPulse {
+    0%, 100% { box-shadow: 0 8px 24px -8px rgba(236,72,153,0.45), 0 0 0 0 rgba(236,72,153,0.35); }
+    50% { box-shadow: 0 8px 28px -6px rgba(236,72,153,0.65), 0 0 22px 4px rgba(99,102,241,0.35); }
+  }
+  @keyframes ctaGlowShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .app-btn-cta, .app-btn-cta::before { animation: none; }
+  }
+  .app-btn-ghost {
+    background: #151b2b;
+    border-color: #1e293b;
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .app-btn-ghost::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    padding: 1.3px;
+    background: linear-gradient(115deg, #6366f1, #ec4899, #8b5cf6, #6366f1);
+    background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+    animation: alertBorderShift 6s ease-in-out infinite;
+  }
+  .app-btn-ghost::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.22), transparent);
+    transform: skewX(-18deg);
+    pointer-events: none;
+    z-index: 1;
+    animation: alertShimmer 5.5s ease-in-out infinite;
+  }
+  .app-btn-ghost:hover { border-color: #334155; }
+  .app-btn-ghost i, .app-btn-ghost svg, .app-btn-ghost span, .app-btn-ghost .app-header-badge {
+    position: relative;
+    z-index: 2;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .app-btn-ghost::before, .app-btn-ghost::after { animation: none; }
+  }
+  .app-btn-icon { padding: 10px; color: #94a3b8; }
+  .app-btn-icon:hover { background: #1e293b; }
+  .app-btn-short { display: none; }
+  @media (max-width: 640px) { .app-btn-full { display: none; } .app-btn-short { display: inline; } }
+  .app-header-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; padding: 0 4px; display: flex; align-items: center; justify-content: center; }
+  .app-user-menu { position: relative; }
+  .app-user-btn { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; padding: 7px 10px 7px 6px; cursor: pointer; transition: border-color .15s ease; }
+  .app-user-btn:hover { border-color: #334155; }
+  .app-user-avatar, .app-user-avatar-fallback { width: 26px; height: 26px; border-radius: 999px; flex-shrink: 0; }
+  .app-user-avatar-fallback { background: linear-gradient(135deg, #6366f1, #06b6d4); display: flex; align-items: center; justify-content: center; }
+  .app-user-avatar-fallback svg { width: 18px; height: 18px; color: #fff; }
+  .app-user-name { font-size: 0.78rem; font-weight: 500; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 640px) { .app-user-name { display: none; } }
+  .app-user-chevron { width: 18px; height: 18px; color: #94a3b8; }
+  .app-user-dot { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 999px; border: 2px solid #0b0f19; }
+  .app-user-dropdown { position: fixed; width: 208px; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; box-shadow: 0 12px 32px -16px rgba(0,0,0,0.5); overflow: hidden; z-index: 200; }
+  .app-user-dropdown-header { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
+  .app-user-dropdown-name { font-size: 0.78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
+  .app-user-dropdown-email { font-size: 0.68rem; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 2px 0 0; }
+  .app-user-dropdown-item { width: 100%; text-align: left; padding: 10px 12px; font-size: 0.78rem; background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #f8fafc; font-family: inherit; }
+  .app-user-dropdown-item svg { width: 18px; height: 18px; }
+  .app-user-dropdown-item:hover { background: #1e293b; }
+  .app-user-dropdown-item-danger { color: #ef4444; }
+
+  /* =====================================================================
+     "Nodal" card treatment — ported from pfm_v9.html's .goal-nodal design
+     onto the existing themed card families (stat-card / track-view-card /
+     ai-pick-card). Reuses each card's own --sc-accent / --tv-accent tokens
+     as the "node color", so every card keeps its own hue automatically.
+     ===================================================================== */
+  .stat-card, .track-view-card, .ai-pick-card {
+    --node-color: var(--sc-accent, var(--tv-accent, #6366f1));
+    --node-bg: var(--sc-icon-bg, var(--tv-icon-bg, rgba(99,102,241,0.28)));
+    border-radius: 18px !important;
+    background-image: linear-gradient(160deg, transparent 40%, var(--node-bg) 140%);
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;
+    will-change: transform;
+  }
+  .stat-card:hover, .track-view-card:hover, .ai-pick-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 14px 30px -14px var(--node-color) !important;
+    border-color: var(--node-color) !important;
+  }
+  /* gradient top bar, always faintly present, brightens on hover/active — echoes .goal-nodal::before */
+  .stat-card::before { height: 4px; background: linear-gradient(90deg, var(--node-color), transparent 140%); opacity: .55; transition: opacity .25s ease; }
+  .stat-card:hover::before, .stat-card.stat-card-active::before { opacity: 1; }
+  .track-view-card .track-accent { height: 4px !important; background: linear-gradient(90deg, var(--node-color), transparent 140%) !important; opacity: .35 !important; }
+  .track-view-card:hover .track-accent, .track-view-card.active .track-accent { opacity: 1 !important; }
+  .ai-pick-card { position: relative; overflow: hidden; }
+  .ai-pick-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--node-color), transparent 140%); opacity: .55; transition: opacity .25s ease; }
+  .ai-pick-card:hover::before { opacity: 1; }
+  /* icon chips get the same rounded-node look as .goal-nodal-icon */
+  .stat-card .stat-icon, .track-view-card .track-icon { border: 1px solid rgba(255,255,255,0.06); }
+
+</style>
+</head>
+<body class="bg-bg text-ink min-h-screen">
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div id="login-screen" class="fixed inset-0 z-[100] bg-bg flex items-center justify-center p-4">
+  <div class="w-full max-w-sm bg-surface border border-line rounded-2xl p-7 fade-in text-center">
+    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-brand to-brand-2 flex items-center justify-center shadow-glow mx-auto mb-4">
+      <i data-lucide="brain-circuit" class="w-9 h-9 text-white"></i>
+    </div>
+    <p class="font-num font-bold text-lg tracking-tight">AlgoTracker</p>
+    <p class="text-xs text-mute mt-1 mb-6">Sign in to keep your own private revision tracker, synced to your account on this device.</p>
+
+    <div id="g_id_signin_container" class="flex justify-center mb-3"></div>
+
+    <div class="flex items-center gap-2 my-4">
+      <div class="flex-1 h-px bg-line"></div>
+      <span class="text-[11px] text-mute">or</span>
+      <div class="flex-1 h-px bg-line"></div>
+    </div>
+
+    <button id="guest-login-btn" type="button" class="w-full bg-surface2 hover:bg-surface3 border border-line transition text-ink text-sm font-medium px-4 py-2.5 rounded-lg flex items-center justify-center gap-2">
+      <i data-lucide="user" class="w-6 h-6"></i> Continue as Guest
+    </button>
+
+    <p id="login-config-warning" class="hidden text-[11px] text-medium mt-4 text-left bg-medium/10 border border-medium/30 rounded-lg p-2.5">
+      <i data-lucide="alert-triangle" class="w-5 h-5 inline -mt-0.5"></i>
+      Google Sign-In isn't configured yet — set a real Google OAuth Client ID in the <code class="font-num">data-client_id</code> attribute (see comment in the HTML) to enable it. Using Guest mode for now.
+    </p>
+  </div>
+</div>
+
+<!-- Google Identity Services config.
+     Replace YOUR_GOOGLE_CLIENT_ID below with a real OAuth 2.0 Client ID
+     from https://console.cloud.google.com/apis/credentials (Web application type,
+     with this page's URL added to "Authorized JavaScript origins"). -->
+<div id="g_id_onload"
+     data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+     data-callback="handleCredentialResponse"
+     data-auto_select="true">
+</div>
+
+<div id="app-root" class="hidden">
+<!-- ===================== NAVBAR ===================== -->
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="app-header-row">
+      <div class="app-logo">
+        <div class="app-logo-icon">
+          <i data-lucide="brain-circuit"></i>
+        </div>
+        <div class="app-logo-text">
+          <p class="app-logo-title">AlgoTracker</p>
+          <p class="app-logo-subtitle">DSA · LLD · HLD — spaced-repetition prep tracker</p>
+        </div>
+      </div>
+
+      <div class="app-header-spacer"></div>
+
+      <button data-tab="queue" class="app-btn app-btn-ghost tab-btn" style="position:relative;">
+        <i data-lucide="repeat"></i><span class="app-btn-full">Revision Queue</span><span class="app-btn-short">Queue</span>
+        <span id="queue-badge" class="app-header-badge hidden">0</span>
+      </button>
+
+      <button data-tab="ai" title="AI Suggestions" class="app-btn app-btn-ghost tab-btn">
+        <i data-lucide="sparkles"></i><span class="app-btn-full">AI Suggestions</span><span class="app-btn-short">AI</span>
+      </button>
+
+      <button id="sync-status-pill" class="sync-status-pill not-connected" title="Google Sheet sync status — click to open sync settings">
+        <i data-lucide="cloud"></i>
+      </button>
+
+      <button data-tab="calendar" title="Calendar" class="date-pill tab-btn">
+        <i data-lucide="calendar-days"></i><span id="header-date-text"></span>
+      </button>
+
+      <div class="app-user-menu">
+        <button id="user-menu-btn" class="app-user-btn">
+          <img id="user-avatar" src="" class="app-user-avatar hidden" />
+          <div id="user-avatar-fallback" class="app-user-avatar-fallback">
+            <i data-lucide="user"></i>
+          </div>
+          <span id="user-name-label" class="app-user-name">Guest</span>
+          <i data-lucide="chevron-down" class="app-user-chevron"></i>
+          <span id="sync-status-dot" class="app-user-dot hidden bg-hard"></span>
+        </button>
+        <div id="user-menu-dropdown" class="app-user-dropdown hidden fade-in">
+          <div class="app-user-dropdown-header">
+            <p id="user-menu-name" class="app-user-dropdown-name">Guest</p>
+            <p id="user-menu-email" class="app-user-dropdown-email"></p>
+          </div>
+          <button id="logout-btn" class="app-user-dropdown-item app-user-dropdown-item-danger">
+            <i data-lucide="log-out"></i> Sign out
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-header-row app-header-row-second">
+      <button id="add-new-btn" type="button" class="app-btn app-btn-cta">
+        <i data-lucide="plus"></i><span class="app-btn-full">Add Problems</span><span class="app-btn-short">Add</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+  <!-- ===================== TRACK SWITCHER (top-level DSA / LLD / HLD pages) ===================== -->
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <button data-track-view="All" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
+      <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
+      <div class="flex items-center justify-between gap-2">
+        <div class="track-icon w-9 h-9 rounded-lg bg-surface3 flex items-center justify-center text-mute transition-colors">
+          <i data-lucide="layers" class="w-6 h-6"></i>
+        </div>
+        <p id="track-count-All" class="track-count font-num text-xl font-bold text-mute transition-colors">0</p>
+      </div>
+      <p class="text-sm font-semibold mt-3">All Tracks</p>
+      <p class="text-[11px] text-mute mt-0.5">Everything in one view</p>
+    </button>
+    <button data-track-view="DSA" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
+      <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
+      <div class="flex items-center justify-between gap-2">
+        <div class="track-icon w-9 h-9 rounded-lg bg-surface3 flex items-center justify-center text-mute transition-colors">
+          <i data-lucide="code-2" class="w-6 h-6"></i>
+        </div>
+        <p id="track-count-DSA" class="track-count font-num text-xl font-bold text-mute transition-colors">0</p>
+      </div>
+      <p class="text-sm font-semibold mt-3">DSA</p>
+      <p class="text-[11px] text-mute mt-0.5">Data Structures &amp; Algorithms</p>
+    </button>
+    <button data-track-view="LLD" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
+      <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
+      <div class="flex items-center justify-between gap-2">
+        <div class="track-icon w-9 h-9 rounded-lg bg-surface3 flex items-center justify-center text-mute transition-colors">
+          <i data-lucide="boxes" class="w-6 h-6"></i>
+        </div>
+        <p id="track-count-LLD" class="track-count font-num text-xl font-bold text-mute transition-colors">0</p>
+      </div>
+      <p class="text-sm font-semibold mt-3">LLD</p>
+      <p class="text-[11px] text-mute mt-0.5">Low-Level Design</p>
+    </button>
+    <button data-track-view="HLD" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
+      <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
+      <div class="flex items-center justify-between gap-2">
+        <div class="track-icon w-9 h-9 rounded-lg bg-surface3 flex items-center justify-center text-mute transition-colors">
+          <i data-lucide="network" class="w-6 h-6"></i>
+        </div>
+        <p id="track-count-HLD" class="track-count font-num text-xl font-bold text-mute transition-colors">0</p>
+      </div>
+      <p class="text-sm font-semibold mt-3">HLD</p>
+      <p class="text-[11px] text-mute mt-0.5">High-Level Design</p>
+    </button>
+  </section>
+
+  <!-- ===================== STATS DASHBOARD ===================== -->
+  <section class="grid grid-cols-2 md:grid-cols-6 gap-3">
+    <button data-stat-filter="all" style="--sc-accent:#6366f1; --sc-icon-bg:rgba(99,102,241,0.16); --sc-border:#6366f1;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="database" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-mute text-[10px] font-semibold uppercase tracking-wide truncate">Total Problems</p>
+        <p id="stat-total" class="font-num text-xl font-bold leading-none mt-1">0</p>
+      </div>
+    </button>
+    <button data-stat-filter="Easy" style="--sc-accent:#10b981; --sc-icon-bg:rgba(16,185,129,0.16); --sc-border:#10b981;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="circle" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-mute text-[10px] font-semibold uppercase tracking-wide truncate">Easy</p>
+        <p id="stat-easy" class="font-num text-xl font-bold leading-none mt-1 text-easy">0</p>
+      </div>
+    </button>
+    <button data-stat-filter="Medium" style="--sc-accent:#f59e0b; --sc-icon-bg:rgba(245,158,11,0.16); --sc-border:#f59e0b;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="triangle" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-mute text-[10px] font-semibold uppercase tracking-wide truncate">Medium</p>
+        <p id="stat-medium" class="font-num text-xl font-bold leading-none mt-1 text-medium">0</p>
+      </div>
+    </button>
+    <button data-stat-filter="Hard" style="--sc-accent:#ef4444; --sc-icon-bg:rgba(239,68,68,0.16); --sc-border:#ef4444;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="square" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-mute text-[10px] font-semibold uppercase tracking-wide truncate">Hard</p>
+        <p id="stat-hard" class="font-num text-xl font-bold leading-none mt-1 text-hard">0</p>
+      </div>
+    </button>
+    <button data-stat-filter="due" style="--sc-accent:#06b6d4; --sc-icon-bg:rgba(6,182,212,0.16); --sc-border:#06b6d4;" class="stat-card stat-card-outline text-left rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="alarm-clock" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-brand-2 text-[10px] font-semibold uppercase tracking-wide truncate">Due Today</p>
+        <p id="stat-due" class="font-num text-xl font-bold leading-none mt-1">0</p>
+      </div>
+    </button>
+    <button data-stat-filter="ok" style="--sc-accent:#4ade80; --sc-icon-bg:rgba(74,222,128,0.16); --sc-border:#4ade80;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-mute text-[10px] font-semibold uppercase tracking-wide truncate">Completed</p>
+        <p id="stat-completed" class="font-num text-xl font-bold leading-none mt-1 text-easy">0</p>
+        <p id="stat-completed-breakdown" class="text-[10px] font-num text-mute mt-1 truncate"></p>
+      </div>
+    </button>
+  </section>
+
+
+  <!-- ===================== REVISION PULSE (signature heatmap) ===================== -->
+  <section class="bg-surface border border-line rounded-xl p-3">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="activity" class="w-4 h-4 text-brand-2"></i>
+        <p class="text-xs font-semibold">Revision Pulse</p>
+        <span class="text-mute text-[10px]">— last 2 months of activity</span>
+      </div>
+      <p id="streak-label" class="text-[10px] font-num text-mute"></p>
+    </div>
+    <div id="heatmap" class="flex gap-0.5 overflow-x-auto overflow-y-visible py-2 px-0.5 -mx-0.5"></div>
+  </section>
+
+  <div id="heatmap-tooltip" class="hidden fixed z-50 bg-surface2 border border-line2 rounded-lg px-3 py-2 shadow-lg pointer-events-none max-w-[220px]">
+    <p id="heatmap-tooltip-date" class="text-[11px] font-num font-semibold text-ink"></p>
+    <div id="heatmap-tooltip-list" class="mt-1 space-y-0.5"></div>
+  </div>
+
+  <!-- ===================== WEAK AREAS + PROGRESS OVER TIME ===================== -->
+  <section class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+    <div class="lg:col-span-2 bg-surface border border-line rounded-xl p-4 flex flex-col">
+      <div class="flex items-center gap-1.5 mb-3">
+        <i data-lucide="target" class="w-4 h-4 text-hard"></i>
+        <p class="text-xs font-semibold">Weak Areas</p>
+        <span class="text-mute text-[10px]">— highest struggle rate</span>
+      </div>
+      <div id="weak-areas-list" class="space-y-3 flex-1"></div>
+      <div id="weak-areas-empty" class="hidden flex-col items-center justify-center py-6 text-center flex-1">
+        <i data-lucide="sparkles" class="w-8 h-8 text-line2 mb-2"></i>
+        <p class="text-xs text-mute">No struggles logged yet — keep it up!</p>
+      </div>
+    </div>
+    <div class="lg:col-span-3 bg-surface border border-line rounded-xl p-4 flex flex-col">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="trending-up" class="w-4 h-4 text-brand-2"></i>
+          <p class="text-xs font-semibold">Progress Over Time</p>
+          <span id="progress-subtitle" class="text-mute text-[10px]">— last 10 weeks</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" data-progress-mode="weekly" class="progress-mode-btn text-[10px] font-medium px-2 py-1 rounded-md">Weekly</button>
+          <button type="button" data-progress-mode="cumulative" class="progress-mode-btn text-[10px] font-medium px-2 py-1 rounded-md">Cumulative</button>
+        </div>
+      </div>
+      <div id="progress-chart" class="flex items-end gap-1.5 h-28 flex-1"></div>
+      <div id="progress-chart-labels" class="flex gap-1.5 mt-1.5"></div>
+      <div id="progress-empty" class="hidden flex-col items-center justify-center py-6 text-center flex-1">
+        <i data-lucide="bar-chart-3" class="w-8 h-8 text-line2 mb-2"></i>
+        <p class="text-xs text-mute">No revisions logged yet.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="progress-bar-tooltip" class="hidden fixed z-50 bg-surface2 border border-line2 rounded-lg px-3 py-2 shadow-lg pointer-events-none max-w-[220px]">
+    <p id="progress-bar-tooltip-text" class="text-[11px] font-num font-semibold text-ink"></p>
+  </div>
+
+  <!-- ===================== TAB: ALL PROBLEMS ===================== -->
+  <section id="tab-dashboard" class="space-y-4">
+    <div class="bg-surface border border-line rounded-xl p-4">
+      <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+        <div class="relative flex-1 max-w-md">
+          <i data-lucide="search" class="w-6 h-6 text-mute absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input id="search-input" type="text" placeholder="Search problems by title..."
+            class="w-full bg-surface2 border border-line rounded-lg pl-9 pr-3 py-2 text-sm placeholder:text-mute" />
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <select id="filter-difficulty" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
+            <option value="all">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+          <select id="filter-tag" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
+            <option value="all">All Tags</option>
+          </select>
+          <select id="filter-status" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
+            <option value="all">All Statuses</option>
+            <option value="due">Needs Revision</option>
+            <option value="ok">Completed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="bulk-actions-bar" class="hidden items-center gap-2 flex-wrap bg-surface2 border border-brand/40 rounded-xl px-4 py-2.5">
+      <span id="bulk-count" class="text-xs font-semibold text-brand-2 mr-1">0 selected</span>
+      <select id="bulk-track-select" class="bg-surface border border-line hover:border-line2 rounded-lg px-2.5 py-1.5 text-xs text-mute transition">
+        <option value="">Change Track…</option>
+        <option value="DSA">DSA</option>
+        <option value="LLD">LLD</option>
+        <option value="HLD">HLD</option>
+      </select>
+      <select id="bulk-difficulty-select" class="bg-surface border border-line hover:border-line2 rounded-lg px-2.5 py-1.5 text-xs text-mute transition">
+        <option value="">Change Difficulty…</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+      <button id="bulk-delete-btn" type="button" class="bg-hard/10 border border-hard/40 text-hard hover:bg-hard/20 rounded-lg px-2.5 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
+        <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+      </button>
+      <div class="flex-1"></div>
+      <button id="bulk-clear-btn" type="button" class="text-xs text-mute hover:text-ink transition">Clear selection</button>
+    </div>
+
+    <div class="bg-surface border border-line rounded-xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-line bg-surface2/60 text-mute text-xs uppercase tracking-wide">
+              <th class="text-left font-medium px-4 py-3 w-10">
+                <input type="checkbox" id="select-all-checkbox" class="w-4 h-4 rounded border-line2 accent-brand cursor-pointer" title="Select all on this page">
+              </th>
+              <th class="text-left font-medium px-4 py-3 w-28">Status</th>
+              <th class="text-left font-medium px-4 py-3 w-20">Track</th>
+              <th class="text-left font-medium px-4 py-3">Title</th>
+              <th class="text-left font-medium px-4 py-3 w-24">Difficulty</th>
+              <th class="text-left font-medium px-4 py-3 w-32">Category</th>
+              <th class="text-left font-medium px-4 py-3 w-32">Last Revised</th>
+              <th class="text-center font-medium px-4 py-3 w-20" title="Number of times marked revised">Revisions</th>
+              <th class="text-left font-medium px-4 py-3 w-32">Next Review</th>
+              <th class="text-right font-medium px-4 py-3 w-24">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="problems-tbody"></tbody>
+        </table>
+      </div>
+      <div id="empty-all" class="hidden flex-col items-center justify-center py-16 px-4 text-center">
+        <i data-lucide="folder-open" class="w-14 h-14 text-line2 mb-3"></i>
+        <p id="empty-all-title" class="font-medium text-mute">No problems logged yet</p>
+        <p class="text-xs text-mute mt-1 mb-4">Log your first problem to start building your revision schedule.</p>
+        <div class="flex items-center gap-2">
+          <button data-goto="add" class="bg-brand hover:bg-brand/80 transition text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-6 h-6"></i> Add a Problem
+          </button>
+          <button id="load-sample-btn" type="button" class="bg-surface2 border border-line hover:border-line2 transition text-ink text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1.5">
+            <i data-lucide="flask-conical" class="w-6 h-6"></i> Load Sample Problems
+          </button>
+        </div>
+      </div>
+      <div id="empty-filtered" class="hidden flex-col items-center justify-center py-16 px-4 text-center">
+        <i data-lucide="search-x" class="w-14 h-14 text-line2 mb-3"></i>
+        <p class="font-medium text-mute">No problems match your filters</p>
+        <p class="text-xs text-mute mt-1">Try adjusting your search or filters.</p>
+      </div>
+      <div id="pagination-bar" class="hidden flex-col sm:flex-row items-center justify-between gap-3 border-t border-line px-4 py-3">
+        <p id="pagination-summary" class="text-xs text-mute"></p>
+        <div id="pagination-pages" class="flex items-center gap-1"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MODAL: ADD NEW ===================== -->
+  <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-surface border border-line rounded-xl p-6 max-w-2xl w-full my-8 relative fade-in">
+      <button id="add-modal-close" type="button" class="absolute top-4 right-4 text-mute hover:text-ink transition">
+        <i data-lucide="x" class="w-7 h-7"></i>
+      </button>
+      <div class="flex items-center gap-2 mb-5">
+        <i data-lucide="notebook-pen" class="w-7 h-7 text-brand-2"></i>
+        <h2 class="font-semibold text-lg" id="form-heading">Log a New Problem</h2>
+      </div>
+      <form id="problem-form" class="space-y-4">
+        <input type="hidden" id="edit-id" value="">
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block">Track <span class="text-hard">*</span></label>
+          <div id="f-track-group" class="grid grid-cols-3 gap-2">
+            <button type="button" data-track="DSA" class="track-opt-btn px-3 py-2 rounded-lg border text-sm font-medium transition">DSA</button>
+            <button type="button" data-track="LLD" class="track-opt-btn px-3 py-2 rounded-lg border text-sm font-medium transition">LLD</button>
+            <button type="button" data-track="HLD" class="track-opt-btn px-3 py-2 rounded-lg border text-sm font-medium transition">HLD</button>
+          </div>
+          <input type="hidden" id="f-track" value="DSA">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block">Problem Title <span class="text-hard">*</span></label>
+          <input required id="f-title" type="text" placeholder="e.g. Two Sum" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block">Reference Link</label>
+          <input id="f-link" type="url" placeholder="e.g. https://leetcode.com/problems/two-sum/ or a design doc/article URL" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-medium text-mute block">Problem Description</label>
+            <button type="button" id="f-description-image-btn" class="text-[11px] text-brand-2 hover:text-brand-2/80 flex items-center gap-1 font-medium">
+              <i data-lucide="image-plus" class="w-5 h-5"></i>Insert Image
+            </button>
+            <input type="file" id="f-description-image" accept="image/*" class="hidden" />
+          </div>
+          <textarea id="f-description" rows="6" wrap="off" placeholder="Paste the full problem statement here (constraints, examples, input/output) so you can practice it later without opening the link...
+
+Tip: ASCII trees / 2D arrays / diagrams paste in fine as plain text, e.g.
+
+    [1,2,3]
+    [4,5,6]
+    [7,8,9]
+
+        1
+       / \
+      2   3
+
+Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm resize-none font-mono overflow-x-auto"></textarea>
+          <p class="text-[11px] text-mute mt-1">Optional, but handy if you want to solve it offline — it'll show up on a "View Problem" button in the table. Whatever spacing/alignment you type (trees, arrays, diagrams) is preserved exactly, character for character, when viewed later — no need to insert an image for that. Use "Insert Image" only for actual pictures/screenshots.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-medium text-mute mb-1 block">Difficulty <span class="text-hard">*</span></label>
+            <select required id="f-difficulty" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm">
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-mute mb-1 block">Category / Tag <span class="text-hard">*</span></label>
+            <input required id="f-category" list="category-list" type="text" placeholder="e.g. Arrays, Graphs, DP" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+            <datalist id="category-list"></datalist>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block" id="interval-label">Starting Revision Interval</label>
+          <select id="f-interval" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm">
+            <option value="1">1 day</option>
+            <option value="3" selected>3 days</option>
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30">30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+          </select>
+          <p class="text-[11px] text-mute mt-1">Grows automatically each time you nail a revision — <span class="font-num">1 → 3 → 7 → 14 → 30 → 60 → 90</span> days. Struggling resets it to day 1.</p>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block">Notes / Key Insights</label>
+          <textarea id="f-notes" rows="4" placeholder="Approach, complexity, edge cases, the 'aha' moment..." class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm resize-none"></textarea>
+        </div>
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit" id="submit-btn" class="bg-brand hover:bg-brand/80 transition text-white text-sm font-medium px-5 py-2.5 rounded-lg flex items-center gap-2">
+            <i data-lucide="save" class="w-6 h-6"></i> Save Problem
+          </button>
+          <button type="button" id="cancel-edit-btn" class="hidden text-mute hover:text-ink text-sm font-medium px-4 py-2.5">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== TAB: REVISION QUEUE ===================== -->
+  <section id="tab-queue" class="hidden space-y-3">
+    <div class="bg-surface2 border border-line rounded-xl p-4 flex items-center gap-3">
+      <i data-lucide="info" class="w-6 h-6 text-brand-2 shrink-0"></i>
+      <p class="text-xs text-mute">Problems appear here once their next review date has arrived. Hit <span class="text-ink font-medium">Mark as Revised</span> to log the revision and push it to the next interval.</p>
+    </div>
+    <div id="queue-list" class="grid gap-3"></div>
+    <div id="empty-queue" class="hidden flex-col items-center justify-center py-16 px-4 text-center bg-surface border border-line rounded-xl">
+      <i data-lucide="check-circle-2" class="w-14 h-14 text-easy mb-3"></i>
+      <p class="font-medium text-mute">You're all caught up!</p>
+      <p class="text-xs text-mute mt-1">No problems are due for revision right now.</p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB: CALENDAR ===================== -->
+  <section id="tab-calendar" class="hidden flex flex-col md:flex-row gap-4 items-start">
+    <div class="bg-surface border border-line rounded-xl p-4 w-full md:max-w-md shrink-0">
+      <div class="flex items-center justify-between mb-4">
+        <button id="cal-prev" class="w-8 h-8 rounded-lg bg-surface2 border border-line hover:border-line2 flex items-center justify-center transition">
+          <i data-lucide="chevron-left" class="w-6 h-6"></i>
+        </button>
+        <div class="text-center">
+          <p id="cal-month-label" class="font-semibold text-sm"></p>
+          <p class="text-[11px] text-mute">Reviews due & revision history</p>
+        </div>
+        <button id="cal-next" class="w-8 h-8 rounded-lg bg-surface2 border border-line hover:border-line2 flex items-center justify-center transition">
+          <i data-lucide="chevron-right" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-7 gap-1.5 text-center text-[11px] text-mute mb-1.5">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+      <div id="cal-grid" class="grid grid-cols-7 gap-1.5"></div>
+      <div class="flex items-center gap-4 mt-4 pt-3 border-t border-line text-[11px] text-mute flex-wrap">
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-brand-2"></span> Reviews due</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-easy"></span> Revised</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border-2 border-brand"></span> Today</span>
+      </div>
+    </div>
+
+    <div id="cal-day-panel" class="bg-surface border border-line rounded-xl p-4 w-full md:flex-1 md:min-w-[280px]">
+      <p class="text-sm font-semibold mb-3" id="cal-day-title">Select a day</p>
+      <div id="cal-day-due-label" class="hidden text-[11px] font-semibold text-brand-2 uppercase tracking-wide mb-2">Due for review</div>
+      <div id="cal-day-list" class="grid gap-2"></div>
+      <div id="cal-day-history-label" class="hidden text-[11px] font-semibold text-easy uppercase tracking-wide mb-2 mt-3">Revised that day</div>
+      <div id="cal-day-history-list" class="grid gap-2"></div>
+      <p id="cal-day-empty" class="hidden text-xs text-mute py-6 text-center">Nothing due or revised on this day.</p>
+    </div>
+  </section>
+
+  <!-- ===================== TAB: AI SUGGESTIONS ===================== -->
+  <section id="tab-ai" class="hidden space-y-4">
+    <div class="bg-surface2 border border-line rounded-xl p-4 flex items-start gap-3">
+      <i data-lucide="sparkles" class="w-6 h-6 text-brand-2 shrink-0 mt-0.5"></i>
+      <div>
+        <p class="text-sm font-medium">Today's Revision Set</p>
+        <p class="text-xs text-mute mt-0.5">Auto-picked from your own saved problems — <span class="font-num">1 Hard + 2 Medium + 1 Easy</span> DSA, prioritized by how overdue they are, plus <span class="font-num">1 LLD/HLD</span> design question. Nothing is invented — every pick links back to a problem you already logged.</p>
+      </div>
+      <div class="flex-1"></div>
+      <button id="ai-refresh-btn" type="button" class="shrink-0 bg-surface border border-line hover:border-line2 rounded-lg px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Re-pick
+      </button>
+    </div>
+
+    <div id="ai-empty" class="hidden flex-col items-center justify-center py-16 px-4 text-center bg-surface border border-line rounded-xl">
+      <i data-lucide="inbox" class="w-14 h-14 text-mute mb-3"></i>
+      <p class="font-medium text-mute">No problems logged yet</p>
+      <p class="text-xs text-mute mt-1 mb-4">Add some DSA, LLD or HLD problems first, then come back for a daily suggestion set.</p>
+      <button id="load-sample-btn-ai" type="button" class="bg-surface2 border border-line hover:border-line2 transition text-ink text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1.5">
+        <i data-lucide="flask-conical" class="w-6 h-6"></i> Load Sample Problems
+      </button>
+    </div>
+
+    <div id="ai-done" class="hidden flex-col items-center justify-center py-16 px-4 text-center bg-surface border border-line rounded-xl">
+      <i data-lucide="party-popper" class="w-14 h-14 text-easy mb-3"></i>
+      <p class="font-medium text-ink">Today's target got completed 🎉</p>
+      <p class="text-xs text-mute mt-1">Nailed it or struggled — either way, you cleared every pick. A fresh set lands tomorrow, or hit Re-pick for more right now.</p>
+    </div>
+
+    <div id="ai-picks-grid" class="grid gap-3 sm:grid-cols-2"></div>
+  </section>
+
+</main>
+</div><!-- /#app-root -->
+
+<!-- ===================== EDIT NOTE PREVIEW MODAL (view notes) ===================== -->
+<div id="notes-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-surface border border-line rounded-xl max-w-lg w-full p-5 fade-in">
+    <div class="flex items-center justify-between mb-3">
+      <h3 id="notes-modal-title" class="font-semibold text-sm"></h3>
+      <button id="notes-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
+    </div>
+    <p id="notes-modal-body" class="text-sm text-mute whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto"></p>
+  </div>
+</div>
+
+<div id="time-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-surface border border-line rounded-xl max-w-sm w-full p-5 fade-in">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="font-semibold text-sm flex items-center gap-2"><i data-lucide="timer" class="w-6 h-6 text-brand-2"></i>How long did it take?</h3>
+      <button id="time-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
+    </div>
+    <p id="time-modal-subtitle" class="text-xs text-mute mb-4 truncate"></p>
+    <div id="time-modal-presets" class="grid grid-cols-4 gap-2 mb-3"></div>
+    <div class="flex items-center gap-2 mb-4">
+      <input id="time-modal-custom" type="number" min="0" placeholder="Custom minutes" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+      <span class="text-xs text-mute shrink-0">min</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="time-modal-save" class="flex-1 bg-brand hover:bg-brand/80 transition text-white text-sm font-medium px-4 py-2.5 rounded-lg">Save</button>
+      <button id="time-modal-skip" class="text-mute hover:text-ink text-sm font-medium px-4 py-2.5">Skip</button>
+    </div>
+  </div>
+</div>
+
+<div id="sync-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-surface border border-line rounded-xl max-w-md w-full p-5 fade-in">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="font-semibold text-sm flex items-center gap-2"><i data-lucide="refresh-cw" class="w-6 h-6 text-brand-2"></i>Google Sheet Sync</h3>
+      <button id="sync-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
+    </div>
+    <p class="text-xs text-mute mb-4 leading-relaxed">Paste the Web App URL from your deployed <code class="text-brand-2">Code.gs</code> Apps Script below. Every problem you log and every revision you mark syncs both ways with your Google Sheet's <span class="text-ink">Problems</span> and <span class="text-ink">Revision_log</span> tabs.</p>
+
+    <label class="block text-[11px] font-medium text-mute mb-1">Web App URL</label>
+    <input id="sync-url-input" type="url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-xs font-num mb-3" />
+
+    <label class="block text-[11px] font-medium text-mute mb-1">Shared Secret (optional, must match SHARED_SECRET in Code.gs)</label>
+    <input id="sync-secret-input" type="password" placeholder="leave blank if not set" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-xs font-num mb-3" />
+
+    <label class="flex items-center gap-2 text-xs text-mute mb-4">
+      <input id="sync-auto-input" type="checkbox" class="w-4 h-4" />
+      Auto-sync every 2 minutes and after every change
+    </label>
+
+    <p id="sync-last-status" class="text-[11px] text-mute mb-4">Not synced yet.</p>
+
+    <div class="flex items-center gap-3 mb-3">
+      <button id="sync-test-btn" class="flex-1 bg-surface2 border border-line hover:border-line2 transition text-xs font-medium px-3 py-2 rounded-lg flex items-center justify-center gap-2">
+        <i data-lucide="plug" class="w-4 h-4"></i> Test Connection
+      </button>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="sync-save-btn" class="flex-1 bg-brand hover:bg-brand/80 transition text-white text-sm font-medium px-4 py-2.5 rounded-lg flex items-center justify-center gap-2">
+        <i data-lucide="save" class="w-5 h-5"></i> Save Settings
+      </button>
+      <button id="sync-now-btn" class="flex-1 bg-surface2 border border-line hover:border-line2 transition text-sm font-medium px-4 py-2.5 rounded-lg flex items-center justify-center gap-2">
+        <i data-lucide="refresh-cw" class="w-5 h-5"></i> Sync Now
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TOAST CONTAINER ===================== -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+<script>
+/* =========================================================
+   SAFE ICON RENDER
+   lucide is loaded from an external CDN (unpkg.com). If it's slow,
+   blocked (ad-blocker / corporate firewall), or offline, calling
+   safeCreateIcons() directly throws and can halt whatever function
+   called it mid-way — e.g. it used to stop loginAs() from ever hiding
+   the login screen, making "Continue as Guest" look broken. Route all
+   calls through this wrapper so a missing icon library never blocks
+   core app functionality.
+========================================================= */
+function safeCreateIcons() {
+  try {
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+  } catch (e) {
+    console.warn('Icon rendering skipped (lucide unavailable):', e);
+  }
+}
+
+/* =========================================================
+   STORAGE
+========================================================= */
+const BASE_STORAGE_KEY = 'dsa_notebook_problems_v1';
+const CURRENT_USER_KEY = 'dsa_notebook_current_user';
+
+function getCurrentUser() {
+  try {
+    const raw = localStorage.getItem(CURRENT_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function storageKeyFor(user) {
+  // Namespace each user's problem list by their account id (Gmail "sub" claim)
+  // or email, so different signed-in users on the same browser never see
+  // each other's data. Guests share a single local "guest" bucket.
+  const ns = user && (user.sub || user.email) ? (user.sub || user.email) : 'guest';
+  return `${BASE_STORAGE_KEY}::${ns}`;
+}
+
+let STORAGE_KEY = storageKeyFor(getCurrentUser());
+
+function loadProblems() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to parse storage', e);
+    return [];
+  }
+}
+function saveProblems() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+  bumpLastModified();
+  scheduleSync();
+}
+
+let problems = loadProblems();
+
+/* =========================================================
+   REVISION LOG — one row per "Mark as Revised" / "Struggled"
+   event, kept separately so it can sync 1:1 to a Google Sheet
+   tab called "Revision_log" (append-only, deduped by log_id).
+========================================================= */
+const REVLOG_BASE_KEY = 'dsa_notebook_revision_log_v1';
+function revLogKeyFor(user) {
+  const ns = user && (user.sub || user.email) ? (user.sub || user.email) : 'guest';
+  return `${REVLOG_BASE_KEY}::${ns}`;
+}
+let REVLOG_STORAGE_KEY = revLogKeyFor(getCurrentUser());
+function loadRevisionLog() {
+  try {
+    const raw = localStorage.getItem(REVLOG_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Failed to parse revision log storage', e);
+    return [];
+  }
+}
+function saveRevisionLog() {
+  localStorage.setItem(REVLOG_STORAGE_KEY, JSON.stringify(revisionLog));
+  bumpLastModified();
+  scheduleSync();
+}
+let revisionLog = loadRevisionLog();
+
+/* =========================================================
+   DELETION TRACKING — ids removed locally since the last
+   successful sync, so the Sheet can delete them too.
+========================================================= */
+const DELETED_IDS_BASE_KEY = 'dsa_notebook_pending_deletes_v1';
+function deletedIdsKeyFor(user) {
+  const ns = user && (user.sub || user.email) ? (user.sub || user.email) : 'guest';
+  return `${DELETED_IDS_BASE_KEY}::${ns}`;
+}
+let DELETED_IDS_KEY = deletedIdsKeyFor(getCurrentUser());
+function loadPendingDeletes() {
+  try {
+    const raw = localStorage.getItem(DELETED_IDS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+function savePendingDeletes() {
+  localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(pendingDeletedIds));
+}
+let pendingDeletedIds = loadPendingDeletes();
+
+/* =========================================================
+   AI TODAY SET — the specific problems picked for "today",
+   persisted per-user/per-day so that (a) reloading the page
+   doesn't reshuffle the set, and (b) marking a pick as Nailed
+   It / Struggled just removes it from today's list instead of
+   pulling in a brand-new replacement pick. A fresh set is only
+   generated once the stored date no longer matches "today", or
+   when the user explicitly hits Re-pick.
+========================================================= */
+const AI_TODAY_BASE_KEY = 'dsa_notebook_ai_today_v1';
+function aiTodayKeyFor(user) {
+  const ns = user && (user.sub || user.email) ? (user.sub || user.email) : 'guest';
+  return `${AI_TODAY_BASE_KEY}::${ns}`;
+}
+let AI_TODAY_KEY = aiTodayKeyFor(getCurrentUser());
+function loadAiToday() {
+  try {
+    const raw = localStorage.getItem(AI_TODAY_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function saveAiToday(state) {
+  localStorage.setItem(AI_TODAY_KEY, JSON.stringify(state));
+}
+
+/* =========================================================
+   ADAPTIVE INTERVAL LADDER
+   Every problem tracks an `intervalIndex` into this ladder.
+   "Mark as Revised" (nailed it) steps the index up — the gap
+   before the next review grows, like real spaced repetition.
+   "Struggled" drops it back to the start so weak problems
+   resurface sooner. Migrates legacy `intervalDays`-only data.
+========================================================= */
+const LADDER = [1, 3, 7, 14, 30, 60, 90];
+
+function closestLadderIndex(days) {
+  let best = 0, bestDiff = Infinity;
+  LADDER.forEach((d, i) => {
+    const diff = Math.abs(d - days);
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
+  });
+  return best;
+}
+function migrateProblem(p) {
+  if (typeof p.intervalIndex !== 'number') {
+    p.intervalIndex = closestLadderIndex(p.intervalDays || 1);
+  }
+  p.intervalDays = LADDER[p.intervalIndex];
+  if (!p.track) p.track = 'DSA';
+  if (typeof p.revisionCount !== 'number') {
+    // Legacy data has no explicit counter — approximate it from history.
+    p.revisionCount = (p.revisionHistory || []).length > 0 ? (p.revisionHistory.length - 1) : 0;
+  }
+  return p;
+}
+
+// Fills in Revision_log entries for problems whose history implies past
+// revisions (revisionHistory has dates beyond createdAt, or a legacy
+// revisionCount was set) but which have no matching log rows yet — e.g.
+// seeded demo problems, or data carried over from before the log existed.
+// Idempotent: only tops up the gap between what's implied and what's
+// already logged, so it's safe to call on every load.
+function backfillRevisionLog() {
+  let changed = false;
+  problems.forEach(p => {
+    const existingCount = revisionLog.filter(r => r.problem_id === p.id).length;
+    const historyDates = (p.revisionHistory || []).filter(d => d !== p.createdAt);
+    const desiredCount = Math.max(historyDates.length, Number(p.revisionCount) || 0);
+    if (desiredCount <= existingCount) return;
+    for (let i = existingCount; i < desiredCount; i++) {
+      const date = historyDates[Math.min(i, historyDates.length - 1)] || p.lastRevised || p.createdAt || todayISO();
+      revisionLog.push({
+        log_id: uid(),
+        problem_id: p.id,
+        date,
+        outcome: 'good',
+        minutes: '',
+        timestamp: Date.now(),
+      });
+      changed = true;
+    }
+  });
+  if (changed) saveRevisionLog();
+}
+problems.forEach(migrateProblem);
+backfillRevisionLog();
+
+/* =========================================================
+   DATE HELPERS (date-only, ISO yyyy-mm-dd)
+========================================================= */
+function todayISO() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return toISO(d);
+}
+function toISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function addDaysISO(iso, days) {
+  const d = parseISODate(iso) || new Date(todayISO() + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return toISO(d);
+}
+// Defensively parse a stored date value into a local-midnight Date.
+// Handles the normal case (plain "YYYY-MM-DD") as well as legacy/corrupt
+// data that may have been saved as a full ISO timestamp (e.g.
+// "2024-01-01T10:23:45.123Z") or another parseable format — in both cases
+// we only care about the calendar date, so we take the first 10 chars.
+// Returns null (never an Invalid Date) if the value can't be parsed at all,
+// so callers can fall back to something sane instead of showing "Invalid Date".
+function parseISODate(iso) {
+  if (!iso) return null;
+  const datePart = String(iso).slice(0, 10);
+  const d = new Date(datePart + 'T00:00:00');
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDisplay(iso) {
+  if (!iso) return '—';
+  const d = parseISODate(iso);
+  if (!d) return '—';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function isDue(p) {
+  return p.nextReview && String(p.nextReview).slice(0, 10) <= todayISO();
+}
+
+/* =========================================================
+   TOP-LEVEL TRACK VIEW (DSA / LLD / HLD / All)
+   Scopes stats, table, queue, calendar and heatmap to one
+   track at a time, like separate pages per track.
+========================================================= */
+const TRACK_VIEW_KEY = 'dsa_notebook_track_view';
+let currentTrack = localStorage.getItem(TRACK_VIEW_KEY) || 'All';
+
+function trackScopedProblems() {
+  return currentTrack === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === currentTrack);
+}
+
+function setTrackView(track) {
+  currentTrack = track;
+  localStorage.setItem(TRACK_VIEW_KEY, track);
+  document.querySelectorAll('.track-view-card').forEach(btn => {
+    const isActive = btn.dataset.trackView === track;
+    btn.classList.toggle('active', isActive);
+    btn.classList.remove('track-view-glow');
+    if (isActive) {
+      void btn.offsetWidth; // force reflow so animation can retrigger
+      btn.classList.add('track-view-glow');
+      btn.addEventListener('animationend', () => btn.classList.remove('track-view-glow'), { once: true });
+    }
+  });
+  if (track !== 'All') setTrackUI(track);
+  currentPage = 1;
+  renderAll();
+}
+document.querySelectorAll('.track-view-card').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const track = btn.dataset.trackView;
+    const isAlreadyActive = btn.classList.contains('active');
+    setTrackView(isAlreadyActive && track !== 'All' ? 'All' : track);
+  });
+});
+
+/* =========================================================
+   TABS
+========================================================= */
+const tabs = ['dashboard','queue','calendar','ai'];
+function showTab(name) {
+  tabs.forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('hidden', t !== name);
+    const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
+    if (btn) btn.classList.toggle('active', t === name);
+  });
+  if (name === 'calendar') renderCalendar();
+  if (name === 'ai') { aiRotation = 0; renderAiPicks(); }
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    const isActive = btn.classList.contains('active');
+    if ((target === 'calendar' || target === 'queue' || target === 'ai') && isActive) {
+      showTab('dashboard');
+    } else {
+      showTab(target);
+    }
+  });
+});
+document.querySelectorAll('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.goto === 'add') {
+      openAddModal();
+    } else {
+      showTab(btn.dataset.goto);
+    }
+  });
+});
+
+/* =========================================================
+   ADD / EDIT MODAL
+========================================================= */
+function openAddModal() {
+  if (!document.getElementById('edit-id').value) {
+    exitEditMode();
+    setTrackUI(currentTrack === 'All' ? 'DSA' : currentTrack);
+  }
+  document.getElementById('add-modal').classList.remove('hidden');
+  safeCreateIcons();
+}
+function closeAddModal() {
+  document.getElementById('add-modal').classList.add('hidden');
+  exitEditMode();
+  form.reset();
+  setTrackUI('DSA');
+}
+document.getElementById('add-new-btn').addEventListener('click', openAddModal);
+document.getElementById('add-modal-close').addEventListener('click', closeAddModal);
+document.getElementById('add-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('add-modal')) closeAddModal();
+});
+
+/* =========================================================
+   TOASTS
+========================================================= */
+function toast(msg, icon='check-circle-2', color='text-easy') {
+  const el = document.createElement('div');
+  el.className = 'toast bg-surface2 border border-line rounded-lg px-4 py-3 shadow-lg flex items-center gap-2 text-sm min-w-[220px]';
+  el.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 ${color}"></i><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  safeCreateIcons();
+  setTimeout(() => el.remove(), 2600);
+}
+
+// Like toast(), but stays up longer and carries an explicit Undo action —
+// used for delete, since a permanent action deserves a brief recovery
+// window instead of (or in addition to) an upfront confirm() dialog.
+function showUndoToast(msg, onUndo, ms = 5000) {
+  const el = document.createElement('div');
+  el.className = 'toast bg-surface2 border border-line rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 text-sm min-w-[260px]';
+  el.style.animation = `toastIn .25s ease both, toastOut .25s ease ${Math.max(0, ms / 1000 - 0.25)}s forwards`;
+  el.innerHTML = `
+    <i data-lucide="trash-2" class="w-6 h-6 text-hard"></i>
+    <span class="flex-1">${msg}</span>
+    <button type="button" class="undo-btn text-brand-2 font-semibold text-xs hover:underline shrink-0">Undo</button>
+  `;
+  document.getElementById('toast-container').appendChild(el);
+  safeCreateIcons();
+  let settled = false;
+  el.querySelector('.undo-btn').addEventListener('click', () => {
+    if (settled) return;
+    settled = true;
+    if (typeof onUndo === 'function') onUndo();
+    el.remove();
+  });
+  setTimeout(() => { if (!settled) { settled = true; el.remove(); } }, ms);
+}
+
+/* =========================================================
+   DIFFICULTY BADGE HELPERS
+========================================================= */
+function ladderDots(p) {
+  const dots = LADDER.map((d, i) => {
+    const filled = i <= p.intervalIndex;
+    return `<span class="inline-block w-1.5 h-1.5 rounded-full ${filled ? 'bg-brand-2' : 'bg-line2'}" title="${d}d"></span>`;
+  }).join('');
+  return `<span class="inline-flex items-center gap-0.5" title="Interval level ${p.intervalIndex+1}/${LADDER.length} (${p.intervalDays}d)">${dots}</span>`;
+}
+function diffBadge(diff) {
+  const map = {
+    Easy: 'bg-easy/10 text-easy border-easy/30',
+    Medium: 'bg-medium/10 text-medium border-medium/30',
+    Hard: 'bg-hard/10 text-hard border-hard/30',
+  };
+  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border ${map[diff]}">${diff}</span>`;
+}
+
+function trackBadge(track) {
+  const t = track || 'DSA';
+  const map = {
+    DSA: 'bg-brand/10 text-brand border-brand/30',
+    LLD: 'bg-brand-2/10 text-brand-2 border-brand-2/30',
+    HLD: 'bg-pink-400/10 text-pink-400 border-pink-400/30',
+  };
+  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border ${map[t] || map.DSA}">${t}</span>`;
+}
+
+/* =========================================================
+   AI SUGGESTIONS — today's revision set
+   Picks straight from the user's own saved `problems` array,
+   nothing invented. DSA: 1 Hard + 2 Medium + 1 Easy, ranked by
+   how overdue they are (then by fewest past revisions).
+   Plus 1 LLD/HLD design question, same ranking.
+========================================================= */
+function overdueDays(p) {
+  return Math.round((new Date(todayISO()) - new Date(p.nextReview)) / 86400000);
+}
+// The authoritative revision count for a problem is however many entries
+// exist for it in the append-only revision log — this is safe to compute
+// from local state and can never regress from a sync round-trip the way a
+// separately-synced counter field could if a server-side schema was stale.
+function revisionCountFor(id) {
+  return revisionLog.filter(r => r.problem_id === id).length;
+}
+function urgencySort(a, b) {
+  return overdueDays(b) - overdueDays(a) || (a.revisionHistory || []).length - (b.revisionHistory || []).length;
+}
+function rotatePool(pool, rotation) {
+  if (pool.length <= 1) return pool;
+  const r = rotation % pool.length;
+  return pool.slice(r).concat(pool.slice(0, r));
+}
+let aiRotation = 0;
+function pickTodaySet(rotation = 0) {
+  const dsa = problems.filter(p => (p.track || 'DSA') === 'DSA');
+  const byDiff = diff => rotatePool(dsa.filter(p => p.difficulty === diff).sort(urgencySort), rotation);
+
+  const picks = [];
+  const used = new Set();
+  function takeFrom(pool, n) {
+    let taken = 0;
+    for (const p of pool) {
+      if (taken >= n) break;
+      if (used.has(p.id)) continue;
+      picks.push(p); used.add(p.id); taken++;
+    }
+    return taken;
+  }
+  takeFrom(byDiff('Hard'), 1);
+  takeFrom(byDiff('Medium'), 2);
+  takeFrom(byDiff('Easy'), 1);
+  // backfill from remaining DSA problems (any difficulty) if a bucket was short
+  if (picks.length < 4) {
+    const rest = rotatePool(dsa.filter(p => !used.has(p.id)).sort(urgencySort), rotation);
+    takeFrom(rest, 4 - picks.length);
+  }
+
+  const design = rotatePool(problems.filter(p => p.track === 'LLD' || p.track === 'HLD').sort(urgencySort), rotation);
+  const designPick = design[0] || null;
+
+  return { dsaPicks: picks, designPick };
+}
+
+function overdueLabel(p) {
+  const days = overdueDays(p);
+  if (days > 0) return `<span class="text-overdue font-medium">${days}d overdue</span>`;
+  if (days === 0) return `<span class="text-medium font-medium">due today</span>`;
+  return `<span class="text-mute">due in ${Math.abs(days)}d</span>`;
+}
+
+function buildAiPickCard(p) {
+  const el = document.createElement('div');
+  el.className = 'ai-pick-card border border-line rounded-xl p-4';
+  // Node color per track — same theming convention as .stat-card / .track-view-card,
+  // so the shared "nodal" CSS (top bar, hover glow, diagonal tint) picks up per-card hues.
+  const nodeColors = {
+    DSA: { accent: '#6366f1', bg: 'rgba(99,102,241,0.16)' },
+    LLD: { accent: '#06b6d4', bg: 'rgba(6,182,212,0.16)' },
+    HLD: { accent: '#f472b6', bg: 'rgba(244,114,182,0.16)' },
+  };
+  const nc = nodeColors[p.track] || nodeColors.DSA;
+  el.style.setProperty('--sc-accent', nc.accent);
+  el.style.setProperty('--sc-icon-bg', nc.bg);
+  el.innerHTML = `
+    <div class="flex items-center gap-2 mb-2 flex-wrap">
+      ${trackBadge(p.track)}
+      ${diffBadge(p.difficulty)}
+      <span class="text-[11px] text-mute">${escapeHtml(p.category || '')}</span>
+      <div class="flex-1"></div>
+      ${overdueLabel(p)}
+    </div>
+    <p class="font-medium text-sm mb-1">${escapeHtml(p.title)}</p>
+    <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mb-2">
+      ${p.link ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="text-[11px] text-brand-2 hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i>Open problem link</a>` : ''}
+      ${p.description ? `<button type="button" class="ai-view-btn text-[11px] text-mute hover:text-brand-2 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
+    </div>
+    ${p.notes ? `<p class="text-xs text-mute mb-3 line-clamp-3">${escapeHtml(p.notes)}</p>` : ''}
+    <div class="grid grid-cols-2 gap-2">
+      <button type="button" class="ai-nailed-btn btn-nailed font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 justify-center">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i> Nailed It <span class="text-[10px] opacity-70 font-num">→ ${LADDER[Math.min(p.intervalIndex+1, LADDER.length-1)]}d</span>
+      </button>
+      <button type="button" class="ai-struggled-btn btn-struggled font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 justify-center">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Struggled
+      </button>
+    </div>
+  `;
+  const viewBtn = el.querySelector('.ai-view-btn');
+  if (viewBtn) viewBtn.addEventListener('click', () => openDescriptionModal(p.id));
+  el.querySelector('.ai-nailed-btn').addEventListener('click', () => markRevised(p.id, 'good'));
+  el.querySelector('.ai-struggled-btn').addEventListener('click', () => markRevised(p.id, 'again'));
+  return el;
+}
+
+// Returns today's persisted AI pick set, generating a fresh one only when
+// the stored set is missing, stale (from a previous day), or forceNew is
+// requested (manual Re-pick). `total` records how many problems were in the
+// set when it was first generated today, so the empty state can tell "no
+// problems exist at all" apart from "today's picks are all handled".
+function ensureAiToday(forceNew = false) {
+  const today = todayISO();
+  let state = loadAiToday();
+  const stale = !state || state.date !== today;
+  const previouslyEmptyPool = state && state.total === 0; // nothing existed to pick from last time
+  if (forceNew || stale || previouslyEmptyPool) {
+    const { dsaPicks, designPick } = pickTodaySet(aiRotation);
+    const ids = dsaPicks.map(p => p.id);
+    if (designPick) ids.push(designPick.id);
+    state = { date: today, ids, total: ids.length };
+    saveAiToday(state);
+  }
+  return state;
+}
+
+function renderAiPicks() {
+  const state = ensureAiToday();
+  const grid = document.getElementById('ai-picks-grid');
+  const empty = document.getElementById('ai-empty');
+  const done = document.getElementById('ai-done');
+  grid.innerHTML = '';
+
+  // Resolve today's remaining ids back to live problem objects, in case one
+  // was deleted elsewhere in the app since the set was picked.
+  const remaining = state.ids.map(id => problems.find(p => p.id === id)).filter(Boolean);
+  if (remaining.length !== state.ids.length) {
+    state.ids = remaining.map(p => p.id);
+    saveAiToday(state);
+  }
+
+  if (state.total === 0) {
+    // Nothing was available to pick from at all — the original "add some
+    // problems first" empty state.
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    done.classList.add('hidden');
+    done.classList.remove('flex');
+    safeCreateIcons();
+    return;
+  }
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
+
+  if (remaining.length === 0) {
+    // Today's picks existed but every single one has been Nailed It'd or
+    // Struggled — the day's target is complete.
+    done.classList.remove('hidden');
+    done.classList.add('flex');
+    safeCreateIcons();
+    return;
+  }
+  done.classList.add('hidden');
+  done.classList.remove('flex');
+
+  remaining.forEach(p => grid.appendChild(buildAiPickCard(p)));
+  safeCreateIcons();
+}
+
+document.getElementById('ai-refresh-btn').addEventListener('click', () => {
+  aiRotation++;
+  ensureAiToday(true); // manual re-pick: overwrite today's persisted set
+  renderAiPicks();
+  toast('Suggestions re-picked', 'refresh-cw', 'text-brand-2');
+});
+
+/* =========================================================
+   RENDER: STATS
+========================================================= */
+function renderStats() {
+  const scoped = trackScopedProblems();
+  document.getElementById('stat-total').textContent = scoped.length;
+  document.getElementById('stat-easy').textContent = scoped.filter(p => p.difficulty === 'Easy').length;
+  document.getElementById('stat-medium').textContent = scoped.filter(p => p.difficulty === 'Medium').length;
+  document.getElementById('stat-hard').textContent = scoped.filter(p => p.difficulty === 'Hard').length;
+  const due = scoped.filter(isDue).length;
+  document.getElementById('stat-due').textContent = due;
+  const completed = scoped.filter(p => !isDue(p));
+  document.getElementById('stat-completed').textContent = completed.length;
+  const cEasy = completed.filter(p => p.difficulty === 'Easy').length;
+  const cMedium = completed.filter(p => p.difficulty === 'Medium').length;
+  const cHard = completed.filter(p => p.difficulty === 'Hard').length;
+  const breakdownEl = document.getElementById('stat-completed-breakdown');
+  breakdownEl.innerHTML = completed.length > 0
+    ? [
+        `<span data-completed-diff="Easy" class="text-easy hover:underline cursor-pointer">${cEasy}E</span>`,
+        `<span class="text-line2">·</span>`,
+        `<span data-completed-diff="Medium" class="text-medium hover:underline cursor-pointer">${cMedium}M</span>`,
+        `<span class="text-line2">·</span>`,
+        `<span data-completed-diff="Hard" class="text-hard hover:underline cursor-pointer">${cHard}H</span>`,
+      ].join(' ')
+    : '';
+
+  const badge = document.getElementById('queue-badge');
+  if (due > 0) {
+    badge.textContent = due;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+/* =========================================================
+   RENDER: HEATMAP (Revision Pulse)
+========================================================= */
+function renderHeatmap() {
+  const container = document.getElementById('heatmap');
+  container.innerHTML = '';
+  const days = [];
+  for (let i = 59; i >= 0; i--) {
+    days.push(addDaysISO(todayISO(), -i));
+  }
+  // count revisions per day + collect which problems were revised that day
+  // (scoped to current track view)
+  const counts = {};
+  const namesByDay = {};
+  trackScopedProblems().forEach(p => {
+    const seenDays = new Set();
+    (p.revisionHistory || []).forEach(d => {
+      if (seenDays.has(d)) return; // don't double-count the same problem twice on one day
+      seenDays.add(d);
+      counts[d] = (counts[d] || 0) + 1;
+      (namesByDay[d] = namesByDay[d] || []).push(p.title);
+    });
+  });
+  const max = Math.max(1, ...days.map(d => counts[d] || 0));
+
+  days.forEach(d => {
+    const c = counts[d] || 0;
+    const intensity = c === 0 ? 0 : Math.ceil((c / max) * 4);
+    const shades = [
+      'bg-surface2 border border-line',
+      'bg-brand/25 border border-brand/30',
+      'bg-brand/50 border border-brand/40',
+      'bg-brand/75 border border-brand/60',
+      'bg-gradient-to-br from-brand to-brand-2 border border-brand-2/50',
+    ];
+    const cell = document.createElement('div');
+    cell.className = `heat-cell w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm shrink-0 ${shades[intensity]}`;
+    cell.addEventListener('mouseenter', () => showHeatmapTooltip(cell, d, namesByDay[d] || []));
+    cell.addEventListener('mouseleave', hideHeatmapTooltip);
+    container.appendChild(cell);
+  });
+
+  // streak label = consecutive days ending today with >=1 revision
+  let streak = 0;
+  for (let i = 0; i < 60; i++) {
+    const d = addDaysISO(todayISO(), -i);
+    if (counts[d]) streak++; else break;
+  }
+  document.getElementById('streak-label').textContent = streak > 0 ? `🔥 ${streak}-day streak` : 'no active streak';
+}
+
+function showHeatmapTooltip(cell, dateIso, titles) {
+  const tip = document.getElementById('heatmap-tooltip');
+  document.getElementById('heatmap-tooltip-date').textContent = fmtDisplay(dateIso);
+  const list = document.getElementById('heatmap-tooltip-list');
+  if (titles.length === 0) {
+    list.innerHTML = `<p class="text-[11px] text-mute">No revisions</p>`;
+  } else {
+    list.innerHTML = titles.map(t => `<p class="text-[11px] text-mute flex items-start gap-1"><span class="text-brand-2 shrink-0">•</span><span>${escapeHtml(t)}</span></p>`).join('');
+  }
+
+  const rect = cell.getBoundingClientRect();
+  tip.classList.remove('hidden');
+  const tipRect = tip.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - tipRect.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+  let top = rect.top - tipRect.height - 8;
+  if (top < 8) top = rect.bottom + 8; // flip below if not enough room above
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+}
+function hideHeatmapTooltip() {
+  document.getElementById('heatmap-tooltip').classList.add('hidden');
+}
+
+/* =========================================================
+   RENDER: WEAK AREAS
+   Aggregates revisionLog entries (scoped to the current track)
+   by each problem's category, comparing "again" (struggled)
+   outcomes against total revisions logged for that category.
+   Pure aggregation over existing data — no new fields needed.
+========================================================= */
+function renderWeakAreas() {
+  const list = document.getElementById('weak-areas-list');
+  const empty = document.getElementById('weak-areas-empty');
+  const scoped = trackScopedProblems();
+  const scopedIds = new Set(scoped.map(p => p.id));
+  const categoryById = {};
+  scoped.forEach(p => { categoryById[p.id] = (p.category || 'Uncategorized').trim(); });
+
+  const byCategory = {};
+  revisionLog.forEach(r => {
+    if (!scopedIds.has(r.problem_id)) return;
+    const rawCat = categoryById[r.problem_id];
+    if (!rawCat) return;
+    // Group case/whitespace-insensitively (e.g. "Arrays" and "arrays" are the
+    // same category to a person, even if typed differently) so struggles
+    // don't silently fragment across near-duplicate labels. Keep the first
+    // casing seen as the display label.
+    const key = rawCat.toLowerCase();
+    byCategory[key] = byCategory[key] || { cat: rawCat, struggles: 0, total: 0 };
+    byCategory[key].total++;
+    if (r.outcome === 'again') byCategory[key].struggles++;
+  });
+
+  const rows = Object.values(byCategory)
+    .filter(v => v.struggles > 0)
+    .map(v => ({ ...v, rate: v.struggles / v.total }))
+    .sort((a, b) => b.struggles - a.struggles || b.rate - a.rate)
+    .slice(0, 5);
+
+  if (rows.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    return;
+  }
+  list.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
+
+  list.innerHTML = rows.map(r => `
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <p class="text-xs font-medium text-ink truncate">${escapeHtml(r.cat)}</p>
+        <p class="text-[11px] font-num text-mute shrink-0">${r.struggles} struggle${r.struggles === 1 ? '' : 's'} / ${r.total} revision${r.total === 1 ? '' : 's'}</p>
+      </div>
+      <div class="weak-area-bar-track">
+        <div class="weak-area-bar-fill" style="width:${Math.round(r.rate * 100)}%"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* =========================================================
+   RENDER: PROGRESS OVER TIME
+   Buckets revisionLog entries (scoped to the current track)
+   into ISO weeks (Mon–Sun) using dates already tracked on
+   every revision, then draws a lightweight CSS bar chart —
+   either revisions-per-week or a running cumulative total.
+========================================================= */
+const PROGRESS_WEEKS = 10;
+let progressMode = localStorage.getItem('dsa_notebook_progress_mode') || 'weekly';
+
+function weekStartISO(iso) {
+  const d = parseISODate(iso) || new Date(todayISO() + 'T00:00:00');
+  const day = d.getDay(); // 0 = Sun
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diffToMonday);
+  return toISO(d);
+}
+
+function renderProgressChart() {
+  const chart = document.getElementById('progress-chart');
+  const labels = document.getElementById('progress-chart-labels');
+  const empty = document.getElementById('progress-empty');
+  const scopedIds = new Set(trackScopedProblems().map(p => p.id));
+
+  const entries = revisionLog
+    .filter(r => scopedIds.has(r.problem_id) && r.date)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (entries.length === 0) {
+    chart.innerHTML = '';
+    labels.innerHTML = '';
+    chart.classList.add('hidden');
+    labels.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    return;
+  }
+  chart.classList.remove('hidden');
+  labels.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
+
+  // Build the last PROGRESS_WEEKS week buckets, most recent last.
+  const thisWeekStart = weekStartISO(todayISO());
+  const weekStarts = [];
+  for (let i = PROGRESS_WEEKS - 1; i >= 0; i--) {
+    weekStarts.push(addDaysISO(thisWeekStart, -7 * i));
+  }
+  const counts = {};
+  weekStarts.forEach(w => counts[w] = 0);
+  entries.forEach(r => {
+    const w = weekStartISO(r.date);
+    if (w in counts) counts[w]++;
+  });
+
+  let values;
+  if (progressMode === 'cumulative') {
+    // Cumulative total as of the END of each week, seeded with anything
+    // logged before the visible window so the line starts accurately.
+    let running = entries.filter(r => r.date < weekStarts[0]).length;
+    values = weekStarts.map(w => {
+      running += counts[w];
+      return running;
+    });
+  } else {
+    values = weekStarts.map(w => counts[w]);
+  }
+
+  const max = Math.max(1, ...values);
+  document.getElementById('progress-subtitle').textContent =
+    progressMode === 'cumulative' ? '— cumulative, last 10 weeks' : '— revisions/week, last 10 weeks';
+
+  chart.innerHTML = weekStarts.map((w, i) => {
+    const v = values[i];
+    // Zero-value weeks get a flat, non-interactive stub instead of the old
+    // "always at least 4% tall" bar — that min-height made empty weeks look
+    // like they had data, which is what made the chart read as broken.
+    const heightPct = v > 0 ? Math.max(4, Math.round((v / max) * 100)) : 0;
+    const isCurrentWeek = w === thisWeekStart;
+    const zeroClass = v > 0 ? '' : ' progress-bar-zero';
+    return `<div class="progress-bar-col">
+      <div class="progress-bar${zeroClass}${isCurrentWeek ? ' opacity-100' : ''}" style="height:${heightPct}%${isCurrentWeek ? '' : ';opacity:0.85'}" data-week="${w}" data-value="${v}">${v > 0 ? `<span class="progress-bar-value">${v}</span>` : ''}</div>
+    </div>`;
+  }).join('');
+
+  labels.innerHTML = weekStarts.map(w => {
+    const d = new Date(w + 'T00:00:00');
+    return `<div class="progress-bar-col"><p class="text-[9px] text-mute font-num text-center">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p></div>`;
+  }).join('');
+
+  chart.querySelectorAll('.progress-bar:not(.progress-bar-zero)').forEach(bar => {
+    bar.addEventListener('mouseenter', () => showProgressTooltip(bar));
+    bar.addEventListener('mouseleave', hideProgressTooltip);
+  });
+}
+
+function showProgressTooltip(bar) {
+  const tip = document.getElementById('progress-bar-tooltip');
+  const text = document.getElementById('progress-bar-tooltip-text');
+  const w = bar.dataset.week;
+  const v = bar.dataset.value;
+  const label = progressMode === 'cumulative' ? `${v} total by ${fmtDisplay(w)}` : `${v} revision${v === '1' ? '' : 's'} — week of ${fmtDisplay(w)}`;
+  text.textContent = label;
+  const rect = bar.getBoundingClientRect();
+  tip.classList.remove('hidden');
+  const tipRect = tip.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - tipRect.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+  let top = rect.top - tipRect.height - 8;
+  if (top < 8) top = rect.bottom + 8;
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+}
+function hideProgressTooltip() {
+  document.getElementById('progress-bar-tooltip').classList.add('hidden');
+}
+
+function setProgressMode(mode) {
+  progressMode = mode;
+  localStorage.setItem('dsa_notebook_progress_mode', mode);
+  document.querySelectorAll('.progress-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.progressMode === mode);
+  });
+  renderProgressChart();
+}
+document.querySelectorAll('.progress-mode-btn').forEach(btn => {
+  btn.classList.toggle('active', btn.dataset.progressMode === progressMode);
+  btn.addEventListener('click', () => setProgressMode(btn.dataset.progressMode));
+});
+
+/* =========================================================
+   RENDER: CATEGORY FILTER + DATALIST
+========================================================= */
+function categoriesForTrack(track) {
+  const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
+  return [...new Set(pool.map(p => p.category).filter(Boolean))].sort();
+}
+
+function renderCategoryOptions() {
+  const cats = categoriesForTrack(currentTrack);
+  const filterSel = document.getElementById('filter-tag');
+  const currentVal = filterSel.value;
+  filterSel.innerHTML = '<option value="all">All Tags</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  filterSel.value = cats.includes(currentVal) ? currentVal : 'all';
+
+  updateCategoryDatalist();
+}
+
+function updateCategoryDatalist() {
+  const formTrack = document.getElementById('f-track').value || 'DSA';
+  const cats = categoriesForTrack(formTrack);
+  document.getElementById('category-list').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+}
+
+/* =========================================================
+   RENDER: MAIN TABLE
+========================================================= */
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function getFilteredProblems() {
+  const search = document.getElementById('search-input').value.trim().toLowerCase();
+  const diff = document.getElementById('filter-difficulty').value;
+  const tag = document.getElementById('filter-tag').value;
+  const status = document.getElementById('filter-status').value;
+
+  return trackScopedProblems()
+    .filter(p => !search || p.title.toLowerCase().includes(search))
+    .filter(p => diff === 'all' || p.difficulty === diff)
+    .filter(p => tag === 'all' || p.category === tag)
+    .filter(p => {
+      if (status === 'all') return true;
+      if (status === 'due') return isDue(p);
+      if (status === 'ok') return !isDue(p);
+      return true;
+    })
+    .sort((a, b) => a.nextReview.localeCompare(b.nextReview));
+}
+
+const PAGE_SIZE = 25;
+let currentPage = 1;
+
+// Bulk-selection state for the dashboard table. `selectedIds` persists across
+// re-renders/pagination (pruned against the current filtered list each render
+// in renderTable), while `currentPageIds` tracks just what's visible right now
+// so the header "select all" checkbox only ever acts on the current page.
+let selectedIds = new Set();
+let currentPageIds = [];
+
+function renderTable() {
+  const tbody = document.getElementById('problems-tbody');
+  const list = getFilteredProblems();
+  tbody.innerHTML = '';
+
+  // Drop any selected ids that no longer match the current filters/track —
+  // keeps the bulk-action bar honest with what's actually visible.
+  const listIds = new Set(list.map(p => p.id));
+  selectedIds.forEach(id => { if (!listIds.has(id)) selectedIds.delete(id); });
+
+  const scopedCount = trackScopedProblems().length;
+  document.getElementById('empty-all').classList.toggle('flex', scopedCount === 0);
+  document.getElementById('empty-all').classList.toggle('hidden', scopedCount !== 0);
+  document.getElementById('empty-all-title').textContent = currentTrack === 'All' ? 'No problems logged yet' : `No ${currentTrack} problems logged yet`;
+  document.getElementById('empty-filtered').classList.toggle('flex', scopedCount > 0 && list.length === 0);
+  document.getElementById('empty-filtered').classList.toggle('hidden', !(scopedCount > 0 && list.length === 0));
+
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageList = list.slice(startIdx, startIdx + PAGE_SIZE);
+
+  pageList.forEach(p => {
+    const due = isDue(p);
+    const tr = document.createElement('tr');
+    tr.className = 'row-enter border-b border-line/60 hover:bg-surface2/50 transition';
+    tr.innerHTML = `
+      <td class="px-4 py-3">
+        <input type="checkbox" data-select="${p.id}" class="w-4 h-4 rounded border-line2 accent-brand cursor-pointer" ${selectedIds.has(p.id) ? 'checked' : ''}>
+      </td>
+      <td class="px-4 py-3">
+        ${due
+          ? `<span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-overdue bg-overdue/10 border border-overdue/30 px-2 py-1 rounded-full"><i data-lucide="alarm-clock" class="w-5 h-5"></i>Needs Revision</span>`
+          : `<span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-easy bg-easy/10 border border-easy/30 px-2 py-1 rounded-full"><i data-lucide="check" class="w-5 h-5"></i>Completed</span>`
+        }
+      </td>
+      <td class="px-4 py-3">${trackBadge(p.track)}</td>
+      <td class="px-4 py-3">
+        <div class="flex flex-col min-w-0">
+          ${p.link
+            ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="font-medium hover:text-brand-2 transition flex items-center gap-1.5">${escapeHtml(p.title)}<i data-lucide="external-link" class="w-5 h-5 text-mute"></i></a>`
+            : `<span class="font-medium">${escapeHtml(p.title)}</span>`
+          }
+          <div class="flex items-center gap-2.5 mt-0.5 flex-wrap">
+            ${p.description ? `<button data-description="${p.id}" class="text-[11px] text-mute hover:text-brand-2 text-left flex items-center gap-1 w-fit"><i data-lucide="file-text" class="w-5 h-5"></i>View Problem</button>` : ''}
+            ${p.notes ? `<button data-notes="${p.id}" class="text-[11px] text-mute hover:text-brand-2 text-left flex items-center gap-1 w-fit"><i data-lucide="sticky-note" class="w-5 h-5"></i>View notes</button>` : ''}
+            ${p.lastTimeMinutes ? `<span class="text-[11px] text-mute flex items-center gap-1" title="Time taken on last revision"><i data-lucide="timer" class="w-5 h-5"></i>${formatMinutes(p.lastTimeMinutes)}</span>` : ''}
+          </div>
+        </div>
+      </td>
+      <td class="px-4 py-3">${diffBadge(p.difficulty)}</td>
+      <td class="px-4 py-3"><span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute">${escapeHtml(p.category)}</span></td>
+      <td class="px-4 py-3 font-num text-xs text-mute">${fmtDisplay(p.lastRevised)}</td>
+      <td class="px-4 py-3 text-center">
+        <span class="inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded-full text-[11px] font-num font-semibold bg-brand-2/10 text-brand-2 border border-brand-2/30" title="Revised ${revisionCountFor(p.id)} time${revisionCountFor(p.id) === 1 ? '' : 's'}">${revisionCountFor(p.id)}</span>
+      </td>
+      <td class="px-4 py-3">
+        <p class="font-num text-xs ${due ? 'text-overdue font-semibold' : 'text-mute'}">${fmtDisplay(p.nextReview)}</p>
+        <div class="mt-1">${ladderDots(p)}</div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="flex items-center justify-end gap-1">
+          <button data-revise-early="${p.id}" title="${due ? 'Mark as revised' : 'Level up (skip to next interval)'}" class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-easy transition"><i data-lucide="trending-up" class="w-5 h-5"></i></button>
+          <button data-requeue="${p.id}" title="${due ? 'Already in Revision Queue' : 'Restart revision cycle from day 1'}" ${due ? 'disabled' : ''} class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"><i data-lucide="calendar-clock" class="w-5 h-5"></i></button>
+          <button data-edit="${p.id}" title="Edit" class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition"><i data-lucide="pencil" class="w-5 h-5"></i></button>
+          <button data-delete="${p.id}" title="Delete" class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-hard transition"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  currentPageIds = pageList.map(p => p.id);
+  safeCreateIcons();
+  attachRowEvents();
+  renderPagination(list.length, totalPages);
+  renderBulkBar();
+}
+
+function renderPagination(totalItems, totalPages) {
+  const bar = document.getElementById('pagination-bar');
+  const summary = document.getElementById('pagination-summary');
+  const pagesWrap = document.getElementById('pagination-pages');
+
+  if (totalItems === 0) {
+    bar.classList.add('hidden');
+    bar.classList.remove('flex');
+    return;
+  }
+  bar.classList.remove('hidden');
+  bar.classList.add('flex');
+
+  const startIdx = (currentPage - 1) * PAGE_SIZE + 1;
+  const endIdx = Math.min(currentPage * PAGE_SIZE, totalItems);
+  summary.textContent = `Showing ${startIdx}–${endIdx} of ${totalItems}`;
+
+  pagesWrap.innerHTML = '';
+
+  const mkBtn = (label, page, opts = {}) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = label;
+    const isActive = page === currentPage && !opts.nav;
+    btn.className = `min-w-[30px] h-[30px] px-2 rounded-md text-xs font-num font-medium border transition
+      ${isActive ? 'bg-brand border-brand text-white' : 'bg-surface2 border-line text-mute hover:border-line2 hover:text-ink'}
+      ${opts.disabled ? 'opacity-40 cursor-not-allowed' : ''}`;
+    if (!opts.disabled) {
+      btn.addEventListener('click', () => { currentPage = page; renderTable(); window.scrollTo({top:0, behavior:'smooth'}); });
+    } else {
+      btn.disabled = true;
+    }
+    pagesWrap.appendChild(btn);
+  };
+
+  mkBtn('‹', Math.max(1, currentPage - 1), { nav: true, disabled: currentPage === 1 });
+
+  const windowSize = 5;
+  let start = Math.max(1, currentPage - Math.floor(windowSize / 2));
+  let end = Math.min(totalPages, start + windowSize - 1);
+  start = Math.max(1, end - windowSize + 1);
+
+  if (start > 1) {
+    mkBtn('1', 1);
+    if (start > 2) { const dots = document.createElement('span'); dots.className = 'text-mute text-xs px-1'; dots.textContent = '…'; pagesWrap.appendChild(dots); }
+  }
+  for (let i = start; i <= end; i++) mkBtn(String(i), i);
+  if (end < totalPages) {
+    if (end < totalPages - 1) { const dots = document.createElement('span'); dots.className = 'text-mute text-xs px-1'; dots.textContent = '…'; pagesWrap.appendChild(dots); }
+    mkBtn(String(totalPages), totalPages);
+  }
+
+  mkBtn('›', Math.min(totalPages, currentPage + 1), { nav: true, disabled: currentPage === totalPages });
+}
+
+/* =========================================================
+   BULK SELECTION — checkbox column + action bar
+========================================================= */
+function updateSelectAllCheckboxUI() {
+  const master = document.getElementById('select-all-checkbox');
+  if (!master) return;
+  const total = currentPageIds.length;
+  const selectedOnPage = currentPageIds.filter(id => selectedIds.has(id)).length;
+  master.checked = total > 0 && selectedOnPage === total;
+  master.indeterminate = selectedOnPage > 0 && selectedOnPage < total;
+}
+
+function renderBulkBar() {
+  const bar = document.getElementById('bulk-actions-bar');
+  const count = document.getElementById('bulk-count');
+  if (!bar) return;
+  if (selectedIds.size === 0) {
+    bar.classList.add('hidden');
+    bar.classList.remove('flex');
+  } else {
+    bar.classList.remove('hidden');
+    bar.classList.add('flex');
+    count.textContent = `${selectedIds.size} selected`;
+  }
+  updateSelectAllCheckboxUI();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  renderBulkBar();
+}
+
+// Applies a mutator to every currently-selected problem, persists, and
+// re-renders. Returns how many problems were actually touched.
+function bulkApply(mutator) {
+  if (selectedIds.size === 0) return 0;
+  let count = 0;
+  problems.forEach(p => {
+    if (selectedIds.has(p.id)) {
+      mutator(p);
+      p.updatedAt = Date.now();
+      count++;
+    }
+  });
+  if (count > 0) {
+    saveProblems();
+    renderAll();
+  }
+  return count;
+}
+
+function attachRowEvents() {
+  document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => enterEditMode(btn.dataset.edit));
+  });
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', () => deleteProblem(btn.dataset.delete));
+  });
+  document.querySelectorAll('[data-notes]').forEach(btn => {
+    btn.addEventListener('click', () => openNotesModal(btn.dataset.notes));
+  });
+  document.querySelectorAll('[data-description]').forEach(btn => {
+    btn.addEventListener('click', () => openDescriptionModal(btn.dataset.description));
+  });
+  document.querySelectorAll('[data-revise-early]').forEach(btn => {
+    btn.addEventListener('click', () => markRevised(btn.dataset.reviseEarly, 'good'));
+  });
+  document.querySelectorAll('[data-requeue]').forEach(btn => {
+    btn.addEventListener('click', () => requeueProblem(btn.dataset.requeue));
+  });
+  document.querySelectorAll('[data-select]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.dataset.select;
+      if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+      renderBulkBar();
+    });
+  });
+}
+
+/* =========================================================
+   RENDER: REVISION QUEUE
+========================================================= */
+function renderQueue() {
+  const list = document.getElementById('queue-list');
+  const due = trackScopedProblems().filter(isDue).sort((a,b) => a.nextReview.localeCompare(b.nextReview));
+  list.innerHTML = '';
+
+  document.getElementById('empty-queue').classList.toggle('flex', due.length === 0);
+  document.getElementById('empty-queue').classList.toggle('hidden', due.length !== 0);
+
+  due.forEach(p => {
+    const overdueDays = Math.max(0, Math.round((new Date(todayISO()) - new Date(p.nextReview)) / 86400000));
+    const card = document.createElement('div');
+    card.className = 'row-enter bg-surface border border-line rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between';
+    card.innerHTML = `
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center flex-wrap gap-2 mb-1">
+          ${trackBadge(p.track)}
+          ${diffBadge(p.difficulty)}
+          <span class="text-xs bg-surface3 border border-line px-2 py-0.5 rounded-md text-mute">${escapeHtml(p.category)}</span>
+          ${overdueDays > 0 ? `<span class="text-[11px] text-overdue font-medium">${overdueDays}d overdue</span>` : `<span class="text-[11px] text-medium font-medium">due today</span>`}
+        </div>
+        <p class="font-medium truncate">${escapeHtml(p.title)}</p>
+        <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1">
+          ${p.link ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="text-[11px] text-brand-2 hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i>Open problem link</a>` : ''}
+          ${p.description ? `<button type="button" data-description="${p.id}" class="text-[11px] text-mute hover:text-brand-2 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
+        </div>
+        <p class="text-xs text-mute mt-0.5 font-num">Last revised ${fmtDisplay(p.lastRevised)} · current interval ${p.intervalDays}d · revised ${revisionCountFor(p.id)}× total</p>
+        <div class="mt-1.5 flex items-center gap-2">${ladderDots(p)}<span class="text-[10px] text-mute font-num">lvl ${p.intervalIndex+1}/${LADDER.length}</span></div>
+        ${p.notes ? `<p class="text-xs text-mute mt-1.5 line-clamp-2">${escapeHtml(p.notes)}</p>` : ''}
+      </div>
+      <div class="flex flex-col gap-1.5 shrink-0">
+        <button data-revise="${p.id}" class="btn-nailed font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 justify-center">
+          <i data-lucide="check-circle-2" class="w-6 h-6"></i> Nailed It <span class="text-[10px] opacity-70 font-num">→ ${LADDER[Math.min(p.intervalIndex+1, LADDER.length-1)]}d</span>
+        </button>
+        <button data-struggle="${p.id}" class="btn-struggled text-xs font-medium px-4 py-1.5 rounded-lg flex items-center gap-1.5 justify-center">
+          <i data-lucide="rotate-ccw" class="w-5 h-5"></i> Struggled <span class="text-[10px] opacity-70 font-num">→ reset to 1d</span>
+        </button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  safeCreateIcons();
+  document.querySelectorAll('[data-revise]').forEach(btn => {
+    btn.addEventListener('click', () => markRevised(btn.dataset.revise, 'good'));
+  });
+  document.querySelectorAll('[data-struggle]').forEach(btn => {
+    btn.addEventListener('click', () => markRevised(btn.dataset.struggle, 'again'));
+  });
+  list.querySelectorAll('[data-description]').forEach(btn => {
+    btn.addEventListener('click', () => openDescriptionModal(btn.dataset.description));
+  });
+}
+
+/* =========================================================
+   NOTES MODAL
+========================================================= */
+function openNotesModal(id) {
+  const p = problems.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('notes-modal-title').textContent = p.title;
+  document.getElementById('notes-modal-body').textContent = p.notes || 'No notes added.';
+  const modal = document.getElementById('notes-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+document.getElementById('notes-modal-close').addEventListener('click', closeNotesModal);
+document.getElementById('notes-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'notes-modal') closeNotesModal();
+});
+function closeNotesModal() {
+  const modal = document.getElementById('notes-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+/* =========================================================
+   DESCRIPTION MODAL (practice the problem without leaving the app)
+========================================================= */
+function renderDescriptionHtml(text) {
+  const escaped = escapeHtml(text);
+  // convert ![alt](data:...) markdown-style images into actual <img> tags
+  return escaped.replace(
+    /!\[([^\]]*)\]\((data:[a-zA-Z0-9+\/=;,._:-]+)\)/g,
+    (match, alt, src) => `<img src="${src}" alt="${escapeHtml(alt)}" style="max-width:100%;border-radius:8px;margin:1rem 0;border:1px solid #334155;display:block;" />`
+  );
+}
+
+const DIFF_COLORS = { Easy: '#10b981', Medium: '#f59e0b', Hard: '#ef4444' };
+
+function openDescriptionModal(id) {
+  const p = problems.find(x => x.id === id);
+  if (!p) return;
+  const diffColor = DIFF_COLORS[p.difficulty] || '#6366f1';
+  const bodyHtml = p.description
+    ? renderDescriptionHtml(p.description)
+    : 'No description added.';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(p.title)} — Problem</title>
+<style>
+  * { box-sizing: border-box; }
+  body { background:#0b0f1a; color:#f8fafc; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; margin:0; padding:2.5rem 2rem 4rem; max-width: 860px; margin-inline:auto; line-height:1.7; }
+  h1 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 1.5rem; margin: 0 0 0.6rem; }
+  .meta { display:flex; align-items:center; gap:0.6rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 0.8rem; margin-bottom: 2rem; }
+  .badge { padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 600; font-size: 0.72rem; border: 1px solid; }
+  .track { color:#94a3b8; border-color:#334155; background:#1e293b; }
+  .category { color:#f8fafc; border-color:#334155; background:#1e293b; }
+  pre.desc { white-space: pre-wrap; font-size: 0.95rem; }
+  a.back { display:inline-flex; align-items:center; gap:0.4rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; color:#94a3b8; text-decoration:none; margin-bottom:1.5rem; }
+  a.back:hover { color:#f8fafc; }
+</style>
+</head>
+<body>
+  <a class="back" href="javascript:window.close()">← Close this tab</a>
+  <h1>${escapeHtml(p.title)}</h1>
+  <div class="meta">
+    <span class="badge" style="color:${diffColor};border-color:${diffColor}66;background:${diffColor}1a;">${escapeHtml(p.difficulty)}</span>
+    <span class="badge track">${escapeHtml(p.track || 'DSA')}</span>
+    <span class="badge category">${escapeHtml(p.category)}</span>
+  </div>
+  <pre class="desc">${bodyHtml}</pre>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank', 'noopener');
+}
+
+/* =========================================================
+   ADD / EDIT / DELETE / REVISE LOGIC
+========================================================= */
+function uid() {
+  return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
+}
+
+/* =========================================================
+   INSERT IMAGE INTO DESCRIPTION (embedded as base64, works fully offline)
+========================================================= */
+document.getElementById('f-description-image-btn').addEventListener('click', () => {
+  document.getElementById('f-description-image').click();
+});
+document.getElementById('f-description-image').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) {
+    toast('Image too large — please use one under 3MB', 'alert-triangle', 'text-hard');
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const textarea = document.getElementById('f-description');
+    const tag = `\n![diagram](${reader.result})\n`;
+    const start = textarea.selectionStart ?? textarea.value.length;
+    const end = textarea.selectionEnd ?? textarea.value.length;
+    textarea.value = textarea.value.slice(0, start) + tag + textarea.value.slice(end);
+    textarea.focus();
+    toast('Image inserted into description', 'image-plus', 'text-brand-2');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+const form = document.getElementById('problem-form');
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const editId = document.getElementById('edit-id').value;
+
+  const title = document.getElementById('f-title').value.trim();
+  const link = document.getElementById('f-link').value.trim();
+  const track = document.getElementById('f-track').value || 'DSA';
+  const difficulty = document.getElementById('f-difficulty').value;
+  const category = document.getElementById('f-category').value.trim();
+  const intervalDays = parseInt(document.getElementById('f-interval').value, 10);
+  const notes = document.getElementById('f-notes').value.trim();
+  const description = document.getElementById('f-description').value.trim();
+
+  if (!title || !category) { toast('Please fill in required fields', 'alert-triangle', 'text-hard'); return; }
+
+  const intervalIndex = closestLadderIndex(intervalDays);
+
+  if (editId) {
+    const p = problems.find(x => x.id === editId);
+    if (p) {
+      p.title = title;
+      p.link = link;
+      p.track = track;
+      p.difficulty = difficulty;
+      p.category = category;
+      p.intervalIndex = intervalIndex;
+      p.intervalDays = LADDER[intervalIndex];
+      p.notes = notes;
+      p.description = description;
+      p.nextReview = addDaysISO(p.lastRevised, p.intervalDays);
+      p.updatedAt = Date.now();
+      toast('Problem updated');
+    }
+  } else {
+    const today = todayISO();
+    const newProblem = {
+      id: uid(),
+      title, link, track, difficulty, category, notes, description,
+      intervalIndex,
+      intervalDays: LADDER[intervalIndex],
+      createdAt: today,
+      lastRevised: today,
+      nextReview: addDaysISO(today, LADDER[intervalIndex]),
+      revisionHistory: [today],
+      revisionCount: 0,
+      updatedAt: Date.now(),
+    };
+    problems.push(newProblem);
+    toast('Problem logged successfully');
+  }
+
+  saveProblems();
+  exitEditMode();
+  form.reset();
+  document.getElementById('f-interval').value = '3';
+  document.getElementById('f-difficulty').value = 'Medium';
+  setTrackUI('DSA');
+  renderAll();
+  showTab('dashboard');
+  document.getElementById('add-modal').classList.add('hidden');
+});
+
+document.getElementById('cancel-edit-btn').addEventListener('click', () => {
+  exitEditMode();
+  form.reset();
+  setTrackUI('DSA');
+  document.getElementById('add-modal').classList.add('hidden');
+});
+
+function setTrackUI(track) {
+  document.getElementById('f-track').value = track;
+  document.querySelectorAll('.track-opt-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.track === track);
+  });
+  const categoryInput = document.getElementById('f-category');
+  const placeholders = {
+    DSA: 'e.g. Arrays, Graphs, DP',
+    LLD: 'e.g. OOP Design, Design Patterns, Concurrency',
+    HLD: 'e.g. System Design, Scalability, Databases',
+  };
+  categoryInput.placeholder = placeholders[track] || placeholders.DSA;
+  if (typeof updateCategoryDatalist === 'function') updateCategoryDatalist();
+}
+document.querySelectorAll('.track-opt-btn').forEach(btn => {
+  btn.addEventListener('click', () => setTrackUI(btn.dataset.track));
+});
+setTrackUI('DSA');
+
+function enterEditMode(id) {
+  const p = problems.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('edit-id').value = p.id;
+  document.getElementById('f-title').value = p.title;
+  document.getElementById('f-link').value = p.link || '';
+  setTrackUI(p.track || 'DSA');
+  document.getElementById('f-difficulty').value = p.difficulty;
+  document.getElementById('f-category').value = p.category;
+  document.getElementById('f-interval').value = String(p.intervalDays);
+  document.getElementById('f-notes').value = p.notes || '';
+  document.getElementById('f-description').value = p.description || '';
+  document.getElementById('form-heading').textContent = 'Edit Problem';
+  document.getElementById('submit-btn').innerHTML = '<i data-lucide="save" class="w-6 h-6"></i> Update Problem';
+  document.getElementById('cancel-edit-btn').classList.remove('hidden');
+  safeCreateIcons();
+  openAddModal();
+}
+
+function exitEditMode() {
+  document.getElementById('edit-id').value = '';
+  document.getElementById('form-heading').textContent = 'Log a New Problem';
+  document.getElementById('submit-btn').innerHTML = '<i data-lucide="save" class="w-6 h-6"></i> Save Problem';
+  document.getElementById('cancel-edit-btn').classList.add('hidden');
+  safeCreateIcons();
+}
+
+// Deletes one or more problems immediately (no blocking confirm dialog),
+// then offers a 5s "Undo" toast before it's truly gone. This mirrors the
+// existing sync bookkeeping — deleted ids go into pendingDeletedIds right
+// away — but Undo fully reverses that (removes from pendingDeletedIds and
+// puts the problem back), so a click within the window is a real no-op.
+function deleteProblemsByIds(ids) {
+  const removed = ids
+    .map(id => problems.find(x => x.id === id))
+    .filter(Boolean);
+  if (removed.length === 0) return;
+
+  const removedIds = removed.map(p => p.id);
+  problems = problems.filter(p => !removedIds.includes(p.id));
+  removedIds.forEach(id => { if (!pendingDeletedIds.includes(id)) pendingDeletedIds.push(id); });
+  savePendingDeletes();
+  saveProblems();
+  clearSelection();
+  renderAll();
+
+  const label = removed.length === 1
+    ? `"${removed[0].title}" deleted`
+    : `${removed.length} problems deleted`;
+  showUndoToast(label, () => undoDelete(removed));
+}
+
+function undoDelete(removedProblems) {
+  const ids = removedProblems.map(p => p.id);
+  problems = problems.concat(removedProblems);
+  pendingDeletedIds = pendingDeletedIds.filter(id => !ids.includes(id));
+  savePendingDeletes();
+  saveProblems();
+  renderAll();
+  toast(removedProblems.length === 1 ? 'Problem restored' : `${removedProblems.length} problems restored`, 'rotate-ccw', 'text-brand-2');
+}
+
+function deleteProblem(id) {
+  deleteProblemsByIds([id]);
+}
+
+function requeueProblem(id) {
+  const p = problems.find(x => x.id === id);
+  if (!p) return;
+  if (isDue(p)) return; // already in the queue
+
+  p.intervalIndex = 0;
+  p.intervalDays = LADDER[0];
+  p.nextReview = todayISO(); // due today — shows up in the Revision Queue
+  saveProblems();
+  renderAll();
+  toast(`"${p.title}" restarted — back in the Revision Queue at day 1`, 'calendar-clock', 'text-brand-2');
+}
+
+/* =========================================================
+   TIME-TAKEN MODAL (asked whenever a revision is logged)
+========================================================= */
+let pendingRevision = null;
+const TIME_PRESETS = [5, 10, 15, 20, 30, 45, 60, 90];
+
+function markRevised(id, outcome = 'good') {
+  const p = problems.find(x => x.id === id);
+  if (!p) return;
+  pendingRevision = { id, outcome };
+
+  document.getElementById('time-modal-subtitle').textContent = p.title;
+  document.getElementById('time-modal-custom').value = '';
+
+  const presetsEl = document.getElementById('time-modal-presets');
+  presetsEl.innerHTML = '';
+  TIME_PRESETS.forEach(min => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'text-xs font-medium px-2 py-2 rounded-lg border border-line bg-surface2 hover:border-brand hover:text-brand-2 transition';
+    btn.textContent = min < 60 ? `${min}m` : `${Math.floor(min/60)}h${min%60 ? ' '+(min%60)+'m' : ''}`;
+    btn.addEventListener('click', () => finalizeRevision(min));
+    presetsEl.appendChild(btn);
+  });
+
+  const modal = document.getElementById('time-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeTimeModal() {
+  const modal = document.getElementById('time-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  pendingRevision = null;
+}
+
+function finalizeRevision(minutes) {
+  if (!pendingRevision) return;
+  const { id, outcome } = pendingRevision;
+  closeTimeModal();
+  applyRevision(id, outcome, minutes);
+}
+
+document.getElementById('time-modal-close').addEventListener('click', () => finalizeRevision(null));
+document.getElementById('time-modal-skip').addEventListener('click', () => finalizeRevision(null));
+document.getElementById('time-modal-save').addEventListener('click', () => {
+  const val = parseInt(document.getElementById('time-modal-custom').value, 10);
+  finalizeRevision(Number.isFinite(val) && val > 0 ? val : null);
+});
+document.getElementById('time-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'time-modal') finalizeRevision(null);
+});
+
+function formatMinutes(min) {
+  if (!min && min !== 0) return '';
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
+function applyRevision(id, outcome = 'good', minutes = null) {
+  const p = problems.find(x => x.id === id);
+  if (!p) return;
+  const today = todayISO();
+
+  if (outcome === 'good') {
+    p.intervalIndex = Math.min(p.intervalIndex + 1, LADDER.length - 1);
+  } else {
+    p.intervalIndex = 0; // struggled — resurface it tomorrow
+  }
+  p.intervalDays = LADDER[p.intervalIndex];
+  p.lastRevised = today;
+  p.nextReview = addDaysISO(today, p.intervalDays);
+  p.revisionHistory = p.revisionHistory || [];
+  if (!p.revisionHistory.includes(today)) p.revisionHistory.push(today);
+  p.revisionCount = (p.revisionCount || 0) + 1;
+  p.updatedAt = Date.now();
+
+  if (minutes !== null && minutes !== undefined) {
+    p.timeLog = p.timeLog || [];
+    p.timeLog.push({ date: today, minutes, outcome });
+    p.lastTimeMinutes = minutes;
+  }
+
+  revisionLog.push({
+    log_id: uid(),
+    problem_id: id,
+    date: today,
+    outcome,
+    minutes: (minutes === null || minutes === undefined) ? '' : minutes,
+    timestamp: Date.now(),
+  });
+  saveRevisionLog();
+  saveProblems();
+
+  const timeNote = minutes ? ` — took ${formatMinutes(minutes)}` : '';
+  if (outcome === 'good') {
+    toast(`"${p.title}" leveled up → next review in ${p.intervalDays}d${timeNote}`, 'trending-up', 'text-brand-2');
+  } else {
+    toast(`"${p.title}" reset — back to day 1${timeNote}`, 'rotate-ccw', 'text-medium');
+  }
+
+  // If this problem was one of today's AI picks, drop it from that persisted
+  // set — Nailed It / Struggled means it's handled for today, regardless of
+  // which tab the action was taken from. This is what lets the AI tab go to
+  // "today's target completed" once every pick has been actioned, instead of
+  // silently backfilling a new suggestion in its place.
+  const aiState = loadAiToday();
+  if (aiState && aiState.date === todayISO() && aiState.ids.includes(id)) {
+    aiState.ids = aiState.ids.filter(x => x !== id);
+    saveAiToday(aiState);
+  }
+
+  renderAll();
+}
+
+/* =========================================================
+   FILTER EVENTS
+========================================================= */
+['search-input','filter-difficulty','filter-tag','filter-status'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { currentPage = 1; renderTable(); });
+  document.getElementById(id).addEventListener('change', () => { currentPage = 1; renderTable(); });
+});
+
+/* =========================================================
+   BULK ACTIONS BAR
+========================================================= */
+document.getElementById('select-all-checkbox').addEventListener('change', (e) => {
+  if (e.target.checked) {
+    currentPageIds.forEach(id => selectedIds.add(id));
+  } else {
+    currentPageIds.forEach(id => selectedIds.delete(id));
+  }
+  renderTable();
+});
+document.getElementById('bulk-track-select').addEventListener('change', (e) => {
+  const val = e.target.value;
+  if (!val) return;
+  const n = bulkApply(p => { p.track = val; });
+  e.target.value = '';
+  if (n > 0) toast(`Track set to ${val} for ${n} problem${n === 1 ? '' : 's'}`, 'move', 'text-brand-2');
+});
+document.getElementById('bulk-difficulty-select').addEventListener('change', (e) => {
+  const val = e.target.value;
+  if (!val) return;
+  const n = bulkApply(p => { p.difficulty = val; });
+  e.target.value = '';
+  if (n > 0) toast(`Difficulty set to ${val} for ${n} problem${n === 1 ? '' : 's'}`, 'gauge', 'text-medium');
+});
+document.getElementById('bulk-delete-btn').addEventListener('click', () => {
+  const ids = [...selectedIds];
+  if (ids.length === 0) return;
+  deleteProblemsByIds(ids);
+});
+document.getElementById('bulk-clear-btn').addEventListener('click', () => {
+  clearSelection();
+  renderTable();
+});
+
+/* =========================================================
+   STAT CARD → FILTER SHORTCUTS
+========================================================= */
+document.getElementById('stat-completed-breakdown').addEventListener('click', (e) => {
+  const span = e.target.closest('[data-completed-diff]');
+  if (!span) return;
+  e.stopPropagation(); // don't also trigger the parent "Completed" card's own filter
+
+  document.querySelectorAll('[data-stat-filter]').forEach(c => {
+    c.classList.remove('stat-card-glow', 'stat-card-active');
+  });
+  const completedCard = document.querySelector('[data-stat-filter="ok"]');
+  void completedCard.offsetWidth;
+  completedCard.classList.add('stat-card-glow', 'stat-card-active');
+  completedCard.addEventListener('animationend', () => completedCard.classList.remove('stat-card-glow'), { once: true });
+
+  document.getElementById('filter-difficulty').value = span.dataset.completedDiff;
+  document.getElementById('filter-status').value = 'ok';
+  document.getElementById('search-input').value = '';
+  currentPage = 1;
+
+  showTab('dashboard');
+  renderTable();
+});
+document.querySelectorAll('[data-stat-filter]').forEach(card => {
+  card.addEventListener('click', () => {
+    const isAlreadyActive = card.classList.contains('stat-card-active');
+    const targetCard = (isAlreadyActive && card.dataset.statFilter !== 'all')
+      ? document.querySelector('[data-stat-filter="all"]')
+      : card;
+
+    document.querySelectorAll('[data-stat-filter]').forEach(c => {
+      c.classList.remove('stat-card-glow');
+    });
+    document.querySelectorAll('[data-stat-filter].stat-card-active').forEach(c => {
+      if (c !== targetCard) c.classList.remove('stat-card-active');
+    });
+    // force reflow so the animation can retrigger on repeated clicks
+    void targetCard.offsetWidth;
+    targetCard.classList.add('stat-card-glow', 'stat-card-active');
+    targetCard.addEventListener('animationend', () => targetCard.classList.remove('stat-card-glow'), { once: true });
+
+    const kind = targetCard.dataset.statFilter;
+    const diffSel = document.getElementById('filter-difficulty');
+    const statusSel = document.getElementById('filter-status');
+    const searchInput = document.getElementById('search-input');
+
+    searchInput.value = '';
+    currentPage = 1;
+
+    if (kind === 'all') {
+      diffSel.value = 'all';
+      statusSel.value = 'all';
+    } else if (kind === 'due') {
+      diffSel.value = 'all';
+      statusSel.value = 'due';
+    } else if (kind === 'ok') {
+      diffSel.value = 'all';
+      statusSel.value = 'ok';
+    } else {
+      diffSel.value = kind; // 'Easy' | 'Medium' | 'Hard'
+      statusSel.value = 'all';
+    }
+
+    showTab('dashboard');
+    renderTable();
+  });
+});
+
+/* =========================================================
+   MASTER RENDER
+========================================================= */
+function renderAll() {
+  document.querySelectorAll('.track-view-card').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.trackView === currentTrack);
+  });
+  document.getElementById('track-count-All').textContent = problems.length;
+  document.getElementById('track-count-DSA').textContent = problems.filter(p => (p.track || 'DSA') === 'DSA').length;
+  document.getElementById('track-count-LLD').textContent = problems.filter(p => p.track === 'LLD').length;
+  document.getElementById('track-count-HLD').textContent = problems.filter(p => p.track === 'HLD').length;
+  renderStats();
+  renderHeatmap();
+  renderWeakAreas();
+  renderProgressChart();
+  renderCategoryOptions();
+  renderTable();
+  renderQueue();
+  if (!document.getElementById('tab-ai').classList.contains('hidden')) { aiRotation = 0; renderAiPicks(); }
+}
+
+/* =========================================================
+   SEED DATA (only on first-ever load, so empty states aren't the
+   only thing a first-time user sees; safe to delete)
+========================================================= */
+function buildSampleProblems() {
+  return [
+    // ---- DSA: Easy (3) ----
+    mkSeed('DSA', 'Two Sum', 'https://leetcode.com/problems/two-sum/', 'Easy', 'Arrays', 7,
+      'Use a hashmap to store complements. O(n) time, O(n) space.', -13, -10,
+      'Given an array of integers nums and an integer target, return the indices of the two numbers such that they add up to target.\n\nExample:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: nums[0] + nums[1] == 9\n\nConstraints:\n- Each input has exactly one solution.\n- You may not use the same element twice.'),
+    mkSeed('DSA', 'Valid Parentheses', 'https://leetcode.com/problems/valid-parentheses/', 'Easy', 'Stack', 7,
+      'Push opening brackets, pop and match on closing. Stack empty at the end = valid.', -10, -7,
+      'Given a string s containing just the characters \'(\', \')\', \'{\', \'}\', \'[\', \']\', determine if the input string is valid.\n\nA string is valid if:\n1. Open brackets are closed by the same type of bracket.\n2. Open brackets are closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.\n\nExample:\nInput: s = "()[]{}"\nOutput: true'),
+    mkSeed('DSA', 'Merge Two Sorted Lists', 'https://leetcode.com/problems/merge-two-sorted-lists/', 'Easy', 'Linked List', 3,
+      'Dummy head + two pointers, splice in the smaller node each step.', -4, -1,
+      'You are given the heads of two sorted linked lists list1 and list2. Merge the two lists into one sorted list by splicing together the nodes of the first two lists, and return the head of the merged list.\n\nExample:\nInput: list1 = [1,2,4], list2 = [1,3,4]\nOutput: [1,1,2,3,4,4]'),
+
+    // ---- DSA: Medium (4) ----
+    mkSeed('DSA', 'Binary Tree Level Order Traversal', 'https://leetcode.com/problems/binary-tree-level-order-traversal/', 'Medium', 'Trees', 3,
+      'Classic BFS with a queue; track level size to split into sublists.', -12, -9,
+      'Given the root of a binary tree, return the level order traversal of its nodes\' values (i.e., from left to right, level by level).\n\nExample:\nInput: root = [3,9,20,null,null,15,7]\nOutput: [[3],[9,20],[15,7]]'),
+    mkSeed('DSA', 'Course Schedule', 'https://leetcode.com/problems/course-schedule/', 'Medium', 'Graphs', 7,
+      'Detect a cycle via topological sort (Kahn\'s algorithm / DFS with visited states).', -11, -8,
+      'There are numCourses courses labeled 0 to numCourses - 1. You are given prerequisites where prerequisites[i] = [a, b] indicates you must take course b before course a. Return true if you can finish all courses (i.e., no cycles in the prerequisite graph).\n\nExample:\nInput: numCourses = 2, prerequisites = [[1,0]]\nOutput: true'),
+    mkSeed('DSA', 'LRU Cache', 'https://leetcode.com/problems/lru-cache/', 'Medium', 'Design', 14,
+      'HashMap + doubly linked list. Move-to-front on access, evict tail on insert when full.', -17, -14,
+      'Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.\n\nImplement the LRUCache class:\n- LRUCache(int capacity) initializes the cache with positive size capacity.\n- int get(int key) returns the value if present, else -1.\n- void put(int key, int value) updates or inserts the value. If the number of keys exceeds capacity, evict the least recently used key.\n\nBoth get and put must run in O(1) average time.'),
+    mkSeed('DSA', 'Number of Islands', 'https://leetcode.com/problems/number-of-islands/', 'Medium', 'Graphs', 7,
+      'DFS/BFS flood-fill from each unvisited land cell, mark visited in place.', -6, -3,
+      'Given an m x n 2D binary grid which represents a map of \'1\'s (land) and \'0\'s (water), return the number of islands. An island is surrounded by water and formed by connecting adjacent lands horizontally or vertically.\n\nExample:\nInput:\n[1,1,0,0,0]\n[1,1,0,0,0]\n[0,0,1,0,0]\n[0,0,0,1,1]\nOutput: 3'),
+
+    // ---- DSA: Hard (3) ----
+    mkSeed('DSA', 'Longest Increasing Subsequence', 'https://leetcode.com/problems/longest-increasing-subsequence/', 'Hard', 'DP', 1,
+      'O(n log n) with patience sorting / binary search on tails array.', -8, -5,
+      'Given an integer array nums, return the length of the longest strictly increasing subsequence.\n\nExample:\nInput: nums = [10,9,2,5,3,7,101,18]\nOutput: 4\nExplanation: The LIS is [2,3,7,101], length 4.'),
+    mkSeed('DSA', 'Median of Two Sorted Arrays', 'https://leetcode.com/problems/median-of-two-sorted-arrays/', 'Hard', 'Binary Search', 1,
+      'Binary search the smaller array for a partition where left halves balance right halves.', -14, -11,
+      'Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays. The overall run time complexity should be O(log(m+n)).\n\nExample:\nInput: nums1 = [1,3], nums2 = [2]\nOutput: 2.0'),
+    mkSeed('DSA', 'Word Ladder II', 'https://leetcode.com/problems/word-ladder-ii/', 'Hard', 'Graphs / BFS', 3,
+      'BFS layer-by-layer to find shortest length, then backtrack through parent pointers to build all paths.', -4, -1,
+      'Given two words beginWord and endWord, and a dictionary wordList, return all the shortest transformation sequences from beginWord to endWord, such that each adjacent pair differs by a single letter and every word in the sequence is in wordList.\n\nExample:\nInput: beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]\nOutput: [["hit","hot","dot","dog","cog"],["hit","hot","lot","log","cog"]]'),
+
+    // ---- LLD (3) ----
+    mkSeed('LLD', 'Design a Parking Lot System', '', 'Medium', 'OOP Design', 7,
+      'Model Vehicle, Spot, and Level classes. Use Strategy for pricing, Factory for spot allocation.', -11, -8,
+      'Design a parking lot system that supports multiple levels and vehicle types (motorcycle, car, bus). Requirements:\n- Assign the smallest suitable spot to an incoming vehicle.\n- Support entry/exit and free up spots.\n- Support different, pluggable pricing strategies (flat rate, per-hour, per-vehicle-type).\n\nDiscuss your class diagram (Vehicle, ParkingSpot, Level, ParkingLot, pricing Strategy) and how you\'d handle concurrency for spot allocation.'),
+    mkSeed('LLD', 'Design a Rate Limiter', '', 'Medium', 'OOP Design', 7,
+      'Token bucket or sliding-window counter per client key; make the algorithm pluggable via Strategy.', -14, -11,
+      'Design a rate limiter that can be plugged into an API gateway to limit the number of requests a client can make in a given time window.\n\nRequirements:\n- Support multiple algorithms (token bucket, fixed window, sliding window log/counter).\n- Rate limit per client key (API key / user ID / IP).\n- Should be efficient and thread-safe for high request volume.\n\nDiscuss trade-offs between the algorithms and how you\'d make the strategy swappable.'),
+    mkSeed('LLD', 'Design an Elevator System', '', 'Hard', 'OOP Design', 7,
+      'Model Elevator, Request, and a scheduling Strategy (e.g. SCAN/LOOK) to batch pickups efficiently.', -3, 0,
+      'Design the core classes for an elevator system serving a multi-floor building with multiple elevator cars.\n\nRequirements:\n- Handle internal requests (floor buttons inside the elevator) and external requests (up/down buttons on each floor).\n- Efficiently dispatch the best elevator for a new request.\n- Support a scheduling algorithm (e.g. SCAN/LOOK) to minimize direction changes.\n\nDiscuss your class diagram (Elevator, ElevatorController, Request, Direction) and how requests get queued and served.'),
+
+    // ---- HLD (3) ----
+    mkSeed('HLD', 'Design a URL Shortener', '', 'Medium', 'System Design', 7,
+      'Base62 encoding, key-generation service, read-heavy caching, and DB sharding by hash range.', -10, -7,
+      'Design a URL shortening service like bit.ly.\n\nRequirements:\n- Given a long URL, generate a short, unique alias.\n- Redirect users from the short URL to the original URL with low latency.\n- Support ~100M new URLs/day, read-heavy traffic (100:1 read/write).\n\nDiscuss: encoding scheme (Base62 vs hashing), key-generation service, database choice and schema, caching layer, and how you\'d shard/scale the datastore.'),
+    mkSeed('HLD', 'Design a News Feed System', '', 'Hard', 'System Design', 7,
+      'Fan-out on write for most users, fan-out on read for celebrities; hybrid to avoid hot-key writes.', -17, -14,
+      'Design a news feed system like Facebook/Instagram\'s feed.\n\nRequirements:\n- Users can post content and follow other users.\n- Generate a personalized, roughly-chronological feed for each user efficiently.\n- Handle celebrity users with millions of followers without hot-key write amplification.\n\nDiscuss: fan-out on write vs fan-out on read, hybrid approach, feed storage/caching, and ranking considerations.'),
+    mkSeed('HLD', 'Design a Chat / Messaging System', '', 'Medium', 'System Design', 7,
+      'WebSockets for delivery, message queue for offline fan-out, and per-conversation sharding for storage.', -5, -2,
+      'Design a real-time one-to-one and group chat system like WhatsApp.\n\nRequirements:\n- Real-time message delivery with low latency.\n- Support offline users (messages delivered when they come back online).\n- Message persistence, read receipts, and typing indicators (bonus).\n\nDiscuss: WebSocket connection management, message queues for fan-out, storage/sharding strategy per conversation, and how you\'d scale to millions of concurrent connections.'),
+  ];
+}
+function seedIfEmpty() {
+  const seedFlagKey = `dsa_notebook_seeded::${STORAGE_KEY}`;
+  if (problems.length > 0 || localStorage.getItem(seedFlagKey)) return;
+  problems = buildSampleProblems();
+  saveProblems();
+  saveRevisionLog();
+  localStorage.setItem(seedFlagKey, '1');
+}
+function loadSampleProblems() {
+  // Manual, always-works loader (button-triggered) — appends sample problems
+  // even if this browser was already seeded/used before, unlike seedIfEmpty().
+  problems = problems.concat(buildSampleProblems());
+  saveProblems();
+  saveRevisionLog();
+  const seedFlagKey = `dsa_notebook_seeded::${STORAGE_KEY}`;
+  localStorage.setItem(seedFlagKey, '1');
+  renderAll();
+  toast('16 sample problems loaded', 'flask-conical', 'text-brand-2');
+}
+['load-sample-btn', 'load-sample-btn-ai'].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', loadSampleProblems);
+});
+function mkSeed(track, title, link, difficulty, category, intervalDays, notes, createdOffset, revisedOffset, description) {
+  const today = todayISO();
+  const created = addDaysISO(today, createdOffset);
+  const lastRevised = addDaysISO(today, revisedOffset);
+  const intervalIndex = closestLadderIndex(intervalDays);
+  const id = uid();
+  const revised = created !== lastRevised;
+  if (revised) {
+    revisionLog.push({
+      log_id: uid(),
+      problem_id: id,
+      date: lastRevised,
+      outcome: 'good',
+      minutes: '',
+      timestamp: Date.now(),
+    });
+  }
+  return {
+    id, title, link, track, difficulty, category, notes, description,
+    intervalIndex,
+    intervalDays: LADDER[intervalIndex],
+    createdAt: created, lastRevised,
+    nextReview: addDaysISO(lastRevised, LADDER[intervalIndex]),
+    revisionHistory: [created, lastRevised].filter((v,i,a) => a.indexOf(v) === i),
+    revisionCount: revised ? 1 : 0,
+    updatedAt: Date.now(),
+  };
+}
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+let calViewDate = new Date(); // month currently displayed
+calViewDate.setDate(1);
+let calSelectedISO = null;
+
+function problemsDueOn(iso) {
+  return trackScopedProblems().filter(p => p.nextReview && String(p.nextReview).slice(0, 10) === iso);
+}
+// History: every problem actually revised on this date, from the revision
+// log (not just what's currently scheduled next) — this is what makes past
+// days on the calendar show real activity instead of always being empty.
+function revisionsOn(iso) {
+  const scopedIds = new Set(trackScopedProblems().map(p => p.id));
+  return revisionLog
+    .filter(r => r.date && String(r.date).slice(0, 10) === iso && scopedIds.has(r.problem_id))
+    .map(r => ({ log: r, problem: problems.find(p => p.id === r.problem_id) }))
+    .filter(x => x.problem);
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const label = document.getElementById('cal-month-label');
+  const year = calViewDate.getFullYear();
+  const month = calViewDate.getMonth();
+  label.textContent = calViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = todayISO();
+
+  grid.innerHTML = '';
+
+  for (let i = 0; i < firstDow; i++) {
+    const blank = document.createElement('div');
+    grid.appendChild(blank);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    const iso = toISO(d);
+    const due = problemsDueOn(iso);
+    const revised = revisionsOn(iso);
+    const isToday = iso === today;
+    const isSelected = iso === calSelectedISO;
+
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.dataset.iso = iso;
+    cell.className = `heat-cell relative aspect-square rounded-lg border text-xs font-num flex flex-col items-center justify-center gap-0.5 transition
+      ${isSelected ? 'bg-brand/20 border-brand' : 'bg-surface2 border-line hover:border-line2'}
+      ${isToday ? 'ring-2 ring-brand/70' : ''}`;
+    cell.innerHTML = `
+      <span class="${isToday ? 'text-brand-2 font-bold' : ''}">${day}</span>
+      <span class="flex items-center gap-0.5">
+        ${due.length ? `<span class="w-1.5 h-1.5 rounded-full bg-brand-2"></span>` : ''}
+        ${revised.length ? `<span class="w-1.5 h-1.5 rounded-full bg-easy"></span>` : ''}
+      </span>
+    `;
+    cell.addEventListener('click', () => {
+      calSelectedISO = iso;
+      renderCalendar();
+      renderCalDayPanel(iso);
+    });
+    grid.appendChild(cell);
+  }
+
+  if (calSelectedISO) renderCalDayPanel(calSelectedISO);
+}
+
+function renderCalDayPanel(iso) {
+  const title = document.getElementById('cal-day-title');
+  const list = document.getElementById('cal-day-list');
+  const dueLabel = document.getElementById('cal-day-due-label');
+  const historyList = document.getElementById('cal-day-history-list');
+  const historyLabel = document.getElementById('cal-day-history-label');
+  const empty = document.getElementById('cal-day-empty');
+  const due = problemsDueOn(iso);
+  const revised = revisionsOn(iso);
+
+  title.textContent = fmtDisplay(iso);
+  list.innerHTML = '';
+  historyList.innerHTML = '';
+  dueLabel.classList.toggle('hidden', due.length === 0);
+  historyLabel.classList.toggle('hidden', revised.length === 0);
+  empty.classList.toggle('hidden', due.length > 0 || revised.length > 0);
+
+  due.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'row-enter flex items-center justify-between gap-3 bg-surface2 border border-line rounded-lg px-3 py-2.5';
+    row.innerHTML = `
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 mb-0.5">${trackBadge(p.track)}</div>
+        <p class="text-sm font-medium truncate">${escapeHtml(p.title)}</p>
+        <p class="text-[11px] text-mute">${escapeHtml(p.category)} · ${p.difficulty}</p>
+      </div>
+      <button data-mark="${p.id}" class="shrink-0 bg-brand hover:bg-brand/80 transition text-white text-xs font-medium px-3 py-1.5 rounded-lg">
+        Mark Revised
+      </button>
+    `;
+    row.querySelector('[data-mark]').addEventListener('click', () => markRevised(p.id, 'good'));
+    list.appendChild(row);
+  });
+
+  revised.forEach(({ log, problem: p }) => {
+    const row = document.createElement('div');
+    row.className = 'row-enter flex items-center justify-between gap-3 bg-surface2 border border-line rounded-lg px-3 py-2.5';
+    row.innerHTML = `
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 mb-0.5">${trackBadge(p.track)}</div>
+        <p class="text-sm font-medium truncate">${escapeHtml(p.title)}</p>
+        <p class="text-[11px] text-mute">${escapeHtml(p.category)} · ${p.difficulty}${log.minutes ? ` · ${formatMinutes(log.minutes)}` : ''}</p>
+      </div>
+      <span class="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-easy bg-easy/10 border border-easy/30 px-2 py-1 rounded-full">
+        <i data-lucide="check" class="w-4 h-4"></i>Revised
+      </span>
+    `;
+    historyList.appendChild(row);
+  });
+  safeCreateIcons();
+}
+
+document.getElementById('cal-prev').addEventListener('click', () => {
+  calViewDate.setMonth(calViewDate.getMonth() - 1);
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', () => {
+  calViewDate.setMonth(calViewDate.getMonth() + 1);
+  renderCalendar();
+});
+
+/* =========================================================
+   AUTH — "Sign in with Google" (Google Identity Services)
+   Falls back to Guest mode if no real Client ID has been set,
+   or if the Google script fails to load (e.g. offline).
+   Each signed-in account gets its own private, locally-stored
+   problem list, namespaced by their Google account id.
+========================================================= */
+function base64UrlDecode(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  return decodeURIComponent(atob(str).split('').map(c =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+  ).join(''));
+}
+
+function decodeJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(base64UrlDecode(payload));
+  } catch (e) {
+    console.error('Failed to decode credential', e);
+    return null;
+  }
+}
+
+function handleCredentialResponse(response) {
+  const payload = decodeJwt(response.credential);
+  if (!payload) return;
+  const user = {
+    sub: payload.sub,
+    name: payload.name || payload.email,
+    email: payload.email,
+    picture: payload.picture || '',
+  };
+  loginAs(user);
+}
+
+function loginAs(user) {
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  STORAGE_KEY = storageKeyFor(user);
+  REVLOG_STORAGE_KEY = revLogKeyFor(user);
+  DELETED_IDS_KEY = deletedIdsKeyFor(user);
+  AI_TODAY_KEY = aiTodayKeyFor(user);
+  problems = loadProblems();
+  problems.forEach(migrateProblem);
+  revisionLog = loadRevisionLog();
+  pendingDeletedIds = loadPendingDeletes();
+  backfillRevisionLog();
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-root').classList.remove('hidden');
+  applyUserToUI(user);
+  seedIfEmpty();
+  showTab('dashboard');
+  renderAll();
+  initSyncForCurrentUser();
+}
+
+function logout() {
+  stopAutoSync();
+  localStorage.removeItem(CURRENT_USER_KEY);
+  document.getElementById('user-menu-dropdown').classList.add('hidden');
+  document.getElementById('app-root').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  // Reset auto-select so Google doesn't silently sign back in immediately.
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.disableAutoSelect();
+  }
+}
+
+function applyUserToUI(user) {
+  const isGuest = !user || !user.email;
+  const nameLabel = document.getElementById('user-name-label');
+  const menuName = document.getElementById('user-menu-name');
+  const menuEmail = document.getElementById('user-menu-email');
+  const avatar = document.getElementById('user-avatar');
+  const avatarFallback = document.getElementById('user-avatar-fallback');
+
+  const displayName = isGuest ? 'Guest' : (user.name || user.email);
+  nameLabel.textContent = displayName;
+  menuName.textContent = displayName;
+  menuEmail.textContent = isGuest ? 'Local guest session' : user.email;
+
+  if (!isGuest && user.picture) {
+    avatar.src = user.picture;
+    avatar.classList.remove('hidden');
+    avatarFallback.classList.add('hidden');
+  } else {
+    avatar.classList.add('hidden');
+    avatarFallback.classList.remove('hidden');
+  }
+  safeCreateIcons();
+}
+
+document.getElementById('guest-login-btn').addEventListener('click', () => loginAs(null));
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+document.getElementById('user-menu-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dropdown = document.getElementById('user-menu-dropdown');
+  const willOpen = dropdown.classList.contains('hidden');
+  if (willOpen) {
+    const btnRect = document.getElementById('user-menu-btn').getBoundingClientRect();
+    const dropdownWidth = 208;
+    // Keep it on-screen: align right edge to the button, but clamp within viewport.
+    let left = btnRect.right - dropdownWidth;
+    left = Math.max(8, Math.min(left, window.innerWidth - dropdownWidth - 8));
+    dropdown.style.top = (btnRect.bottom + 8) + 'px';
+    dropdown.style.left = left + 'px';
+  }
+  dropdown.classList.toggle('hidden');
+});
+document.addEventListener('click', () => {
+  document.getElementById('user-menu-dropdown').classList.add('hidden');
+});
+window.addEventListener('resize', () => {
+  document.getElementById('user-menu-dropdown').classList.add('hidden');
+});
+
+function initAuth() {
+  const existing = getCurrentUser();
+  const clientIdEl = document.getElementById('g_id_onload');
+  const clientIdConfigured = clientIdEl &&
+    clientIdEl.dataset.client_id &&
+    !clientIdEl.dataset.client_id.startsWith('YOUR_GOOGLE_CLIENT_ID');
+
+  if (existing) {
+    // Already signed in from a previous visit — skip the login screen.
+    STORAGE_KEY = storageKeyFor(existing);
+    REVLOG_STORAGE_KEY = revLogKeyFor(existing);
+    DELETED_IDS_KEY = deletedIdsKeyFor(existing);
+    AI_TODAY_KEY = aiTodayKeyFor(existing);
+    problems = loadProblems();
+    problems.forEach(migrateProblem);
+    revisionLog = loadRevisionLog();
+    pendingDeletedIds = loadPendingDeletes();
+    backfillRevisionLog();
+    applyUserToUI(existing);
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-root').classList.remove('hidden');
+    seedIfEmpty();
+    renderAll();
+    initSyncForCurrentUser();
+    return;
+  }
+
+  if (!clientIdConfigured) {
+    document.getElementById('login-config-warning').classList.remove('hidden');
+    return;
+  }
+
+  try {
+    google.accounts.id.initialize({
+      client_id: clientIdEl.dataset.client_id,
+      callback: handleCredentialResponse,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('g_id_signin_container'),
+      { theme: 'filled_black', size: 'large', shape: 'pill', width: 260 }
+    );
+  } catch (e) {
+    console.error('Google Sign-In failed to initialize', e);
+    document.getElementById('login-config-warning').classList.remove('hidden');
+  }
+}
+
+/* =========================================================
+   GOOGLE SHEET TWO-WAY SYNC
+   Talks to a deployed Apps Script Web App (see Code.gs).
+   - "Problems" and "Revision_log" are treated as the two
+     tables. Every mutation (add/edit/delete/revise) schedules
+     a debounced sync; there's also a periodic auto-sync and a
+     manual "Sync Now" button.
+   - Conflict rule: last-write-wins per problem, compared by
+     `updatedAt`. The server always returns the merged truth,
+     which fully replaces local state after every sync.
+   - Revision_log is append-only and de-duplicated by log_id,
+     so it merges without conflicts.
+========================================================= */
+const SYNC_CONFIG_KEY = 'dsa_notebook_sync_config_v1';
+
+function loadSyncConfig() {
+  try {
+    const raw = localStorage.getItem(SYNC_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : { url: '', secret: '', auto: true };
+  } catch (e) {
+    return { url: '', secret: '', auto: true };
+  }
+}
+function saveSyncConfig(cfg) {
+  localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(cfg));
+}
+let syncConfig = loadSyncConfig();
+let syncInFlight = false;
+let syncQueuedAgain = false;
+let syncDebounceTimer = null;
+let autoSyncInterval = null;
+
+function setSyncStatusDot(state) {
+  // state: 'ok' | 'error' | 'busy' | 'off'
+  const dot = document.getElementById('sync-status-dot');
+  if (dot) {
+    const colors = { ok: 'bg-easy', error: 'bg-hard', busy: 'bg-medium', off: '' };
+    dot.classList.remove('hidden', 'bg-easy', 'bg-hard', 'bg-medium');
+    if (state === 'off' || !syncConfig.url) { dot.classList.add('hidden'); }
+    else { dot.classList.add(colors[state] || 'bg-medium'); }
+  }
+
+  const pill = document.getElementById('sync-status-pill');
+  if (pill) {
+    pill.classList.remove('not-connected', 'ok', 'error', 'busy');
+    if (state === 'off' || !syncConfig.url) {
+      pill.classList.add('not-connected');
+      pill.title = 'Google Sheet sync: not connected — click to connect';
+    } else {
+      pill.classList.add(state === 'ok' ? 'ok' : state === 'error' ? 'error' : 'busy');
+      pill.title = state === 'ok' ? 'Google Sheet sync: connected — click to open sync settings'
+        : state === 'error' ? 'Google Sheet sync: failed — click to open sync settings'
+        : 'Google Sheet sync: syncing…';
+      const icon = pill.querySelector('[data-lucide]');
+      if (icon) {
+        icon.setAttribute('data-lucide', state === 'error' ? 'cloud-off' : 'cloud');
+        if (window.lucide) safeCreateIcons();
+      }
+    }
+  }
+}
+
+function setSyncStatusText(msg) {
+  const el = document.getElementById('sync-last-status');
+  if (el) el.textContent = msg;
+}
+
+function updateHeaderDatePill() {
+  const el = document.getElementById('header-date-text');
+  if (!el) return;
+  el.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// Whole-state sync model, ported from pfm_v9: the app's entire data —
+// { problems, revisionLog } — is treated as one blob with a lastModified
+// timestamp. Saving POSTs the whole thing and REPLACES what's in the Sheet.
+// There is no per-record merge; the guard below just refuses to save if the
+// Sheet has moved on since this tab last knew about it (matching pfm_v9's
+// saveDataToSheets() staleness check), so a stale tab can't silently clobber
+// newer data — it has to reload first.
+const LAST_MODIFIED_KEY = 'dsa_notebook_last_modified_v1';
+
+function getLastModified() {
+  return Number(localStorage.getItem(LAST_MODIFIED_KEY)) || 0;
+}
+function bumpLastModified() {
+  localStorage.setItem(LAST_MODIFIED_KEY, String(Date.now()));
+}
+// The Sheet's lastModified as of this tab's last successful load/save —
+// distinct from our own local timestamp, which bumps on every local edit.
+let lastSyncedRemoteTime = 0;
+let pendingSyncCount = 0;
+
+async function apiCall(action, payload) {
+  if (!syncConfig.url) throw new Error('Web App URL not configured');
+  const body = { action, secret: syncConfig.secret || '', ...payload };
+  // Content-Type text/plain avoids a CORS preflight against Apps Script,
+  // which doesn't implement doOptions(). The body is still valid JSON.
+  const res = await fetch(syncConfig.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+  });
+  return await res.json();
+}
+
+async function testConnection() {
+  if (!syncConfig.url) { toast('Add your Web App URL first', 'alert-triangle', 'text-hard'); return; }
+  setSyncStatusDot('busy');
+  setSyncStatusText('Testing…');
+  try {
+    const res = await fetch(syncConfig.url + '?action=ping' + (syncConfig.secret ? '&secret=' + encodeURIComponent(syncConfig.secret) : ''));
+    const data = await res.json();
+    if (data.status === 'ok') {
+      setSyncStatusDot('ok');
+      setSyncStatusText('Connection successful');
+      toast('Connection successful', 'check', 'text-easy');
+    } else {
+      throw new Error(data.message || 'Connection test failed');
+    }
+  } catch (err) {
+    setSyncStatusDot('error');
+    setSyncStatusText(`Connection failed: ${err.message || err}`);
+    toast('Connection failed: ' + (err.message || err), 'alert-triangle', 'text-hard');
+  }
+}
+
+async function loadDataFromSheets() {
+  if (!syncConfig.url) return null;
+  setSyncStatusDot('busy');
+  setSyncStatusText('Loading from Sheets…');
+  try {
+    const res = await fetch(syncConfig.url + '?action=load' + (syncConfig.secret ? '&secret=' + encodeURIComponent(syncConfig.secret) : ''));
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error(data.message || 'Load failed');
+    setSyncStatusDot('ok');
+    setSyncStatusText(`Last synced ${new Date().toLocaleTimeString()}`);
+    return data;
+  } catch (err) {
+    console.error('Load error', err);
+    setSyncStatusDot('error');
+    setSyncStatusText(`Sync failed: ${err.message || err}`);
+    return null;
+  }
+}
+
+async function saveDataToSheets() {
+  if (!syncConfig.url) return;
+  setSyncStatusDot('busy');
+  setSyncStatusText('Syncing to Sheets…');
+  try {
+    // Staleness guard: refuse to overwrite the Sheet if it has moved on
+    // since this tab last actually knew its state (e.g. a sync from
+    // another device/tab landed in between). Without this, a tab left
+    // open for a while would silently blow away newer data on its next
+    // save. The fix is to reload, not to force through.
+    try {
+      const check = await fetch(syncConfig.url + '?action=load' + (syncConfig.secret ? '&secret=' + encodeURIComponent(syncConfig.secret) : ''));
+      const checkData = await check.json();
+      if (checkData && checkData.status === 'ok' && checkData.lastModified && checkData.lastModified > lastSyncedRemoteTime) {
+        setSyncStatusDot('error');
+        setSyncStatusText('Newer data on Sheets — reload this page before saving again');
+        toast('Google Sheets has newer data than this tab knows about. Reload the page to pick it up before syncing again.', 'alert-triangle', 'text-hard');
+        return;
+      }
+    } catch (e) {
+      // Can't reach the staleness check — fall through and save anyway,
+      // rather than blocking every edit whenever the network hiccups.
+    }
+
+    const lastModified = Date.now();
+    const data = await apiCall('save', { problems, revisionLog, lastModified });
+    if (data.status !== 'ok') throw new Error(data.message || 'Save failed');
+    lastSyncedRemoteTime = data.lastModified || lastModified;
+    setSyncStatusDot('ok');
+    setSyncStatusText(`Last synced ${new Date().toLocaleTimeString()}`);
+  } catch (err) {
+    console.error('Sync failed', err);
+    setSyncStatusDot('error');
+    setSyncStatusText(`Sync failed: ${err.message || err}`);
+  }
+}
+
+// Debounced trigger — call this after any local mutation.
+function scheduleSync() {
+  if (!syncConfig.url || !syncConfig.auto) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => { syncNow(); }, 1500);
+}
+
+function startAutoSync() {
+  stopAutoSync();
+  if (!syncConfig.url || !syncConfig.auto) return;
+  autoSyncInterval = setInterval(() => syncNow(), 2 * 60 * 1000);
+}
+function stopAutoSync() {
+  if (autoSyncInterval) clearInterval(autoSyncInterval);
+  autoSyncInterval = null;
+  clearTimeout(syncDebounceTimer);
+}
+
+async function initSyncForCurrentUser() {
+  setSyncStatusDot(syncConfig.url ? 'busy' : 'off');
+  if (!syncConfig.url) return;
+
+  const sheetData = await loadDataFromSheets();
+  if (sheetData && sheetData.status === 'ok') {
+    const localTime = getLastModified();
+    const remoteTime = sheetData.lastModified || 0;
+    if (localTime > 0 && remoteTime > 0 && localTime > remoteTime) {
+      // This tab's local data is newer than what's on the Sheet (e.g. a
+      // previous save never finished) — keep it and push it back up,
+      // rather than silently overwriting it with the older Sheet copy.
+      console.warn('Local data is newer than Sheets — keeping local copy and re-syncing to Sheets.');
+      lastSyncedRemoteTime = remoteTime;
+      await saveDataToSheets();
+    } else {
+      problems = (sheetData.problems || []).map(migrateProblem);
+      revisionLog = sheetData.revisionLog || [];
+      saveProblemsRaw();
+      saveRevisionLogRaw();
+      backfillRevisionLog();
+      lastSyncedRemoteTime = remoteTime;
+      bumpLastModified();
+      renderAll();
+    }
+  }
+  startAutoSync();
+}
+
+async function syncNow() {
+  if (!syncConfig.url) {
+    toast('Add your Web App URL in Sync settings first', 'alert-triangle', 'text-hard');
+    return;
+  }
+  if (syncInFlight) { syncQueuedAgain = true; return; }
+  syncInFlight = true;
+  pendingSyncCount++;
+  try {
+    await saveDataToSheets();
+  } finally {
+    pendingSyncCount--;
+    syncInFlight = false;
+    if (syncQueuedAgain) { syncQueuedAgain = false; syncNow(); }
+  }
+}
+
+// Manual "Sync Now" button — confirms before overwriting the Sheet, since
+// this is a whole-state sync (no per-record merge): whatever's in this
+// browser right now completely replaces what's in the Sheet.
+function manualSyncNow() {
+  if (!syncConfig.url) {
+    toast('Add your Web App URL in Sync settings first', 'alert-triangle', 'text-hard');
+    return;
+  }
+  const msg = `This will OVERWRITE your Google Sheet with the data currently loaded in this browser (${problems.length} problem${problems.length === 1 ? '' : 's'}, ${revisionLog.length} revision log entr${revisionLog.length === 1 ? 'y' : 'ies'}).\n\nIf this browser has older or blank data, syncing now will replace the newer data in your Sheet.\n\nAre you sure you want to sync now?`;
+  if (!confirm(msg)) return;
+  syncNow().then(() => toast('Sync complete!', 'check', 'text-easy'));
+}
+
+// Warn before closing/reloading the tab while a sync is still in flight, so
+// a too-quick reload can't race ahead of the save and pull back stale data.
+window.addEventListener('beforeunload', (e) => {
+  if (pendingSyncCount > 0) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+// Raw saves that skip scheduleSync(), used only when writing data that just
+// came FROM the server, so we don't immediately re-trigger a sync loop.
+function saveProblemsRaw() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
+}
+function saveRevisionLogRaw() {
+  localStorage.setItem(REVLOG_STORAGE_KEY, JSON.stringify(revisionLog));
+}
+
+/* ---- Sync modal wiring ---- */
+function openSyncModal() {
+  document.getElementById('sync-url-input').value = syncConfig.url || '';
+  document.getElementById('sync-secret-input').value = syncConfig.secret || '';
+  document.getElementById('sync-auto-input').checked = syncConfig.auto !== false;
+  document.getElementById('sync-modal').classList.remove('hidden');
+  document.getElementById('sync-modal').classList.add('flex');
+  safeCreateIcons();
+}
+function closeSyncModal() {
+  document.getElementById('sync-modal').classList.add('hidden');
+  document.getElementById('sync-modal').classList.remove('flex');
+}
+document.getElementById('sync-status-pill').addEventListener('click', openSyncModal);
+document.getElementById('sync-modal-close').addEventListener('click', closeSyncModal);
+document.getElementById('sync-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'sync-modal') closeSyncModal();
+});
+document.getElementById('sync-save-btn').addEventListener('click', () => {
+  syncConfig = {
+    url: document.getElementById('sync-url-input').value.trim(),
+    secret: document.getElementById('sync-secret-input').value.trim(),
+    auto: document.getElementById('sync-auto-input').checked,
+  };
+  saveSyncConfig(syncConfig);
+  toast('Sync settings saved', 'save', 'text-brand-2');
+  setSyncStatusDot(syncConfig.url ? 'busy' : 'off');
+  closeSyncModal();
+  // Load first (like app init does), not push — if this Sheet already has
+  // data, we want to adopt it rather than immediately trying to overwrite
+  // it with whatever's in this browser.
+  if (syncConfig.url) initSyncForCurrentUser();
+  else stopAutoSync();
+});
+document.getElementById('sync-test-btn').addEventListener('click', testConnection);
+document.getElementById('sync-now-btn').addEventListener('click', () => {
+  closeSyncModal();
+  manualSyncNow();
+});
+
+/* =========================================================
+   INIT
+========================================================= */
+safeCreateIcons();
+// Give the Google script a brief moment to load before checking config,
+// then decide whether to show the login screen or resume an existing session.
+window.addEventListener('load', () => setTimeout(initAuth, 150));
+updateHeaderDatePill();
+</script>
+</body>
+</html>
