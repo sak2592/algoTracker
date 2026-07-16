@@ -69,7 +69,7 @@ const TRACK_SHEET_NAMES = { DSA: 'DSA', LLD: 'LLD', HLD: 'HLD' };
 const REVISION_SHEET_NAME = 'Revision_log';
 
 const PROBLEM_COLUMNS = [
-  'id', 'title', 'link', 'track', 'difficulty', 'category', 'notes',
+  'id', 'title', 'link', 'track', 'difficulty', 'category', 'company', 'notes',
   'description', 'intervalIndex', 'intervalDays', 'createdAt', 'lastRevised',
   'nextReview', 'revisionHistory', 'revisionCount', 'lastTimeMinutes', 'updatedAt', 'deletedAt'
 ];
@@ -387,4 +387,3 @@ function setupSheets() {
   getOrCreateSheet(REVISION_SHEET_NAME, REVISION_COLUMNS);
   Logger.log('DSA, LLD, HLD and Revision_log sheets are ready.');
 }
-
