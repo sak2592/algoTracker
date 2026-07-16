@@ -665,6 +665,9 @@
           <select id="filter-tag" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
             <option value="all">All Tags</option>
           </select>
+          <select id="filter-company" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
+            <option value="all">All Companies</option>
+          </select>
           <select id="filter-status" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
             <option value="all">All Statuses</option>
             <option value="due">Needs Revision</option>
@@ -820,6 +823,12 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
             <input required id="f-category" list="category-list" type="text" placeholder="e.g. Arrays, Graphs, DP" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
             <datalist id="category-list"></datalist>
           </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block">Company / Source <span class="text-mute font-normal">(optional)</span></label>
+          <input id="f-company" list="company-list" type="text" placeholder="e.g. Amazon, Meta OA, Google Onsite" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+          <datalist id="company-list"></datalist>
+          <p class="text-[11px] text-mute mt-1">Tag which company or source this problem came from, so you can filter your prep by target company later.</p>
         </div>
         <div>
           <label class="text-xs font-medium text-mute mb-1 block" id="interval-label">Starting Revision Interval</label>
@@ -1296,6 +1305,7 @@ document.querySelectorAll('.track-view-card').forEach(btn => {
       const track = btn.dataset.trackView;
       const isAlreadyActive = btn.classList.contains('active');
       setTrackView(isAlreadyActive && track !== 'All' ? 'All' : track);
+      showTab('dashboard');
     } else if (btn.dataset.tab) {
       const isAlreadyActive = btn.classList.contains('active');
       showTab(isAlreadyActive ? 'dashboard' : btn.dataset.tab);
@@ -1439,6 +1449,11 @@ function trackBadge(track) {
   return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border ${map[t] || map.DSA}">${t}</span>`;
 }
 
+function companyBadge(company) {
+  if (!company) return '';
+  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border bg-violet-400/10 text-violet-400 border-violet-400/30 flex items-center gap-1 max-w-[110px]" title="${escapeHtml(company)}"><i data-lucide="building-2" class="w-3 h-3 shrink-0"></i><span class="truncate">${escapeHtml(company)}</span></span>`;
+}
+
 /* =========================================================
    AI SUGGESTIONS — today's revision set
    Picks straight from the user's own saved `problems` array,
@@ -1526,13 +1541,14 @@ function buildAiPickCard(p, index) {
       ${trackBadge(p.track)}
       ${diffBadge(p.difficulty)}
       <span class="text-[11px] text-mute">${escapeHtml(p.category || '')}</span>
+      ${companyBadge(p.company)}
       <div class="flex-1"></div>
       ${overdueLabel(p)}
     </div>
     <p class="font-medium text-sm mb-1">${escapeHtml(p.title)}</p>
     <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mb-2">
       ${p.link ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="text-[11px] text-brand-2 hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i>Open problem link</a>` : ''}
-      ${p.description ? `<button type="button" class="ai-view-btn text-[11px] text-mute hover:text-brand-2 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
+      ${p.description ? `<button type="button" class="ai-view-btn text-[11px] font-medium text-accent hover:text-accent/80 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
     </div>
     ${p.notes ? `<p class="text-xs text-mute mb-3 line-clamp-3">${escapeHtml(p.notes)}</p>` : ''}
     <div class="flex items-center gap-1.5 mt-1">
@@ -1939,6 +1955,11 @@ function categoriesForTrack(track) {
   return [...new Set(pool.map(p => p.category).filter(Boolean))].sort();
 }
 
+function companiesForTrack(track) {
+  const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
+  return [...new Set(pool.map(p => p.company).filter(Boolean))].sort();
+}
+
 function renderCategoryOptions() {
   const cats = categoriesForTrack(currentTrack);
   const filterSel = document.getElementById('filter-tag');
@@ -1947,6 +1968,22 @@ function renderCategoryOptions() {
   filterSel.value = cats.includes(currentVal) ? currentVal : 'all';
 
   updateCategoryDatalist();
+  renderCompanyOptions();
+}
+
+function renderCompanyOptions() {
+  const companies = companiesForTrack(currentTrack);
+  const filterSel = document.getElementById('filter-company');
+  const currentVal = filterSel.value;
+  filterSel.innerHTML = '<option value="all">All Companies</option>' + companies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  filterSel.value = companies.includes(currentVal) ? currentVal : 'all';
+
+  updateCompanyDatalist();
+}
+
+function updateCompanyDatalist() {
+  const companies = [...new Set(problems.map(p => p.company).filter(Boolean))].sort();
+  document.getElementById('company-list').innerHTML = companies.map(c => `<option value="${escapeHtml(c)}">`).join('');
 }
 
 function updateCategoryDatalist() {
@@ -1969,6 +2006,7 @@ function getFilteredProblems() {
   const trackFilter = document.getElementById('filter-track').value;
   const diff = document.getElementById('filter-difficulty').value;
   const tag = document.getElementById('filter-tag').value;
+  const company = document.getElementById('filter-company').value;
   const status = document.getElementById('filter-status').value;
 
   return trackScopedProblems()
@@ -1976,6 +2014,7 @@ function getFilteredProblems() {
     .filter(p => !search || p.title.toLowerCase().includes(search))
     .filter(p => diff === 'all' || p.difficulty === diff)
     .filter(p => tag === 'all' || p.category === tag)
+    .filter(p => company === 'all' || p.company === company)
     .filter(p => {
       if (status === 'all') return true;
       if (status === 'due') return isDue(p);
@@ -2041,14 +2080,19 @@ function renderTable() {
             : `<span class="font-medium truncate block">${escapeHtml(p.title)}</span>`
           }
           <div class="flex items-center gap-2.5 mt-0.5 flex-wrap">
-            ${p.description ? `<button data-description="${p.id}" class="text-[11px] text-mute hover:text-brand-2 text-left flex items-center gap-1 w-fit"><i data-lucide="file-text" class="w-5 h-5"></i>View Problem</button>` : ''}
+            ${p.description ? `<button data-description="${p.id}" class="text-[11px] font-medium text-accent hover:text-accent/80 text-left flex items-center gap-1 w-fit"><i data-lucide="file-text" class="w-5 h-5"></i>View Problem</button>` : ''}
             ${p.notes ? `<button data-notes="${p.id}" class="text-[11px] text-mute hover:text-brand-2 text-left flex items-center gap-1 w-fit"><i data-lucide="sticky-note" class="w-5 h-5"></i>View notes</button>` : ''}
             ${p.lastTimeMinutes ? `<span class="text-[11px] text-mute flex items-center gap-1" title="Time taken on last revision"><i data-lucide="timer" class="w-5 h-5"></i>${formatMinutes(p.lastTimeMinutes)}</span>` : ''}
           </div>
         </div>
       </td>
       <td class="px-4 py-3"><span class="inline-block max-w-full">${diffBadge(p.difficulty)}</span></td>
-      <td class="px-3 py-3"><span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute whitespace-nowrap inline-block">${escapeHtml(p.category)}</span></td>
+      <td class="px-3 py-3">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute whitespace-nowrap inline-block">${escapeHtml(p.category)}</span>
+          ${companyBadge(p.company)}
+        </div>
+      </td>
       <td class="px-4 py-3 font-num text-xs text-mute whitespace-nowrap">${fmtDisplay(p.lastRevised)}</td>
       <td class="px-2 py-3 text-center">
         <span class="inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded-full text-[11px] font-num font-semibold bg-brand-2/10 text-brand-2 border border-brand-2/30" title="Revised ${revisionCountFor(p.id)} time${revisionCountFor(p.id) === 1 ? '' : 's'}">${revisionCountFor(p.id)}</span>
@@ -2239,12 +2283,13 @@ function renderQueue() {
           ${trackBadge(p.track)}
           ${diffBadge(p.difficulty)}
           <span class="text-xs bg-surface3 border border-line px-2 py-0.5 rounded-md text-mute">${escapeHtml(p.category)}</span>
+          ${companyBadge(p.company)}
           ${dueLabel}
         </div>
         <p class="font-medium truncate">${escapeHtml(p.title)}</p>
         <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1">
           ${p.link ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="text-[11px] text-brand-2 hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i>Open problem link</a>` : ''}
-          ${p.description ? `<button type="button" data-description="${p.id}" class="text-[11px] text-mute hover:text-brand-2 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
+          ${p.description ? `<button type="button" data-description="${p.id}" class="text-[11px] font-medium text-accent hover:text-accent/80 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
         </div>
         <p class="text-xs text-mute mt-0.5 font-num">Last revised ${fmtDisplay(p.lastRevised)} · current interval ${p.intervalDays}d · revised ${revisionCountFor(p.id)}× total</p>
         <div class="mt-1.5 flex items-center gap-2">${ladderDots(p)}<span class="text-[10px] text-mute font-num">lvl ${p.intervalIndex+1}/${LADDER.length}</span></div>
@@ -2335,6 +2380,13 @@ function openDescriptionModal(id) {
   pre.desc { white-space: pre-wrap; font-size: 0.95rem; }
   a.back { display:inline-flex; align-items:center; gap:0.4rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; color:#94a3b8; text-decoration:none; margin-bottom:1.5rem; }
   a.back:hover { color:#f8fafc; }
+  .outcome-bar { position: sticky; bottom: 0; display:flex; gap:0.6rem; margin-top:2.5rem; padding:1rem 0 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(0deg, #0b0f1a 55%, transparent); }
+  .outcome-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:0.4rem; padding:0.75rem 1rem; border-radius:0.6rem; font-size:0.85rem; font-weight:600; cursor:pointer; border:none; font-family:inherit; }
+  .btn-nailed { background: linear-gradient(135deg, #10b981, #06b6d4); color:#04140f; box-shadow: 0 2px 10px -3px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.25); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; }
+  .btn-nailed:hover { transform: translateY(-1px); box-shadow: 0 4px 16px -3px rgba(16,185,129,0.7), inset 0 1px 0 rgba(255,255,255,0.3); filter: brightness(1.05); }
+  .btn-struggled { background: rgba(239,68,68,0.08); color:#ef4444; border:1px solid rgba(239,68,68,0.35); transition: transform .12s ease, background .12s ease, border-color .12s ease; }
+  .btn-struggled:hover { background: rgba(239,68,68,0.16); border-color: rgba(239,68,68,0.55); transform: translateY(-1px); }
+  .outcome-note { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.72rem; color:#64748b; text-align:center; margin-top:0.6rem; }
 </style>
 </head>
 <body>
@@ -2346,12 +2398,28 @@ function openDescriptionModal(id) {
     <span class="badge category">${escapeHtml(p.category)}</span>
   </div>
   <pre class="desc">${bodyHtml}</pre>
+  <div class="outcome-bar">
+    <button type="button" class="outcome-btn btn-nailed" onclick="sendOutcome('good')">✓ Nailed It</button>
+    <button type="button" class="outcome-btn btn-struggled" onclick="sendOutcome('again')">↺ Struggled</button>
+  </div>
+  <p class="outcome-note">Logs the result back in the tracker and closes this tab.</p>
+  <script>
+    function sendOutcome(outcome) {
+      if (window.opener && !window.opener.closed && typeof window.opener.markRevised === 'function') {
+        window.opener.markRevised(${JSON.stringify(p.id)}, outcome);
+        window.opener.focus();
+        window.close();
+      } else {
+        alert('Could not reach the tracker tab. Please switch back to it and mark the result there.');
+      }
+    }
+  <` + `/script>
 </body>
 </html>`;
 
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank', 'noopener');
+  window.open(url, '_blank');
 }
 
 /* =========================================================
@@ -2399,6 +2467,7 @@ form.addEventListener('submit', (e) => {
   const track = document.getElementById('f-track').value || 'DSA';
   const difficulty = document.getElementById('f-difficulty').value;
   const category = document.getElementById('f-category').value.trim();
+  const company = document.getElementById('f-company').value.trim();
   const intervalDays = parseInt(document.getElementById('f-interval').value, 10);
   const notes = document.getElementById('f-notes').value.trim();
   const description = document.getElementById('f-description').value.trim();
@@ -2415,6 +2484,7 @@ form.addEventListener('submit', (e) => {
       p.track = track;
       p.difficulty = difficulty;
       p.category = category;
+      p.company = company;
       p.intervalIndex = intervalIndex;
       p.intervalDays = LADDER[intervalIndex];
       p.notes = notes;
@@ -2427,7 +2497,7 @@ form.addEventListener('submit', (e) => {
     const today = todayISO();
     const newProblem = {
       id: uid(),
-      title, link, track, difficulty, category, notes, description,
+      title, link, track, difficulty, category, company, notes, description,
       intervalIndex,
       intervalDays: LADDER[intervalIndex],
       createdAt: today,
@@ -2487,6 +2557,7 @@ function enterEditMode(id) {
   setTrackUI(p.track || 'DSA');
   document.getElementById('f-difficulty').value = p.difficulty;
   document.getElementById('f-category').value = p.category;
+  document.getElementById('f-company').value = p.company || '';
   document.getElementById('f-interval').value = String(p.intervalDays);
   document.getElementById('f-notes').value = p.notes || '';
   document.getElementById('f-description').value = p.description || '';
@@ -2677,7 +2748,7 @@ function applyRevision(id, outcome = 'good', minutes = null) {
 /* =========================================================
    FILTER EVENTS
 ========================================================= */
-['search-input','filter-track','filter-difficulty','filter-tag','filter-status'].forEach(id => {
+['search-input','filter-track','filter-difficulty','filter-tag','filter-company','filter-status'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => { currentPage = 1; renderTable(); });
   document.getElementById(id).addEventListener('change', () => { currentPage = 1; renderTable(); });
 });
