@@ -9,6 +9,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   tailwind.config = {
     theme: {
@@ -75,10 +76,20 @@
       radial-gradient(700px 500px at 50% 110%, rgba(236,72,153,0.08), transparent 60%);
   }
 
-  .cta-btn { background: linear-gradient(135deg, #ec4899, #6366f1); box-shadow: 0 8px 24px -8px rgba(236,72,153,0.45); transition: filter .15s ease, transform .15s ease; }
-  .cta-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  /* Force transparency on every surface panel with !important so this
+     always wins regardless of where the Tailwind CDN injects its own
+     generated stylesheet in the DOM. [class~="X"] matches the exact
+     class token X only (so "bg-surface" won't also match "bg-surface2"),
+     while [class*="X/"] separately catches opacity-modifier variants
+     like "bg-surface/60" used on a few modals. */
+  [class~="bg-surface"]:not(.track-view-card)  { background: rgba(21,27,43,0.55) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
+  [class~="bg-surface2"] { background: rgba(30,41,59,0.5)  !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
+  [class~="bg-surface3"]:not(.track-icon) { background: rgba(35,47,69,0.5)  !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
+  [class*="bg-surface/"]  { background: rgba(21,27,43,0.4) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
+  [class*="bg-surface2/"] { background: rgba(30,41,59,0.4) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
+  [class*="bg-surface3/"] { background: rgba(35,47,69,0.4) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
 
-  .stat-card { position: relative; overflow: hidden; background: #161d33; border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .stat-card { position: relative; overflow: hidden; background: rgba(22,29,51,0.5); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--sc-accent, #6366f1); opacity: .9; }
   .stat-card .stat-icon {
     background: var(--sc-icon-bg, rgba(99,102,241,0.14));
@@ -111,13 +122,13 @@
   .track-opt-btn.active[data-track="DSA"] { border-color: #6366f1; color: #f8fafc; background: rgba(99,102,241,0.14); }
   .track-opt-btn.active[data-track="LLD"] { border-color: #06b6d4; color: #f8fafc; background: rgba(6,182,212,0.14); }
   .track-opt-btn.active[data-track="HLD"] { border-color: #f472b6; color: #f8fafc; background: rgba(244,114,182,0.14); }
-  .track-view-card { will-change: transform; background: #131a2c; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+  .track-view-card { will-change: transform; background: rgba(19,26,44,0.48); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
   .track-view-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
   .track-view-card .track-accent { opacity: .9; background: var(--tv-accent, #6366f1); }
   .track-view-card .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.14)); color: var(--tv-accent, #6366f1); border: 1px solid rgba(255,255,255,0.06); }
   .track-view-card .track-count { color: var(--tv-accent, #6366f1); }
   .track-view-card { border-color: var(--tv-border, #334155); }
-  .track-view-card.active { background: var(--tv-bg, #232f45); border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
+  .track-view-card.active { background: var(--tv-bg, rgba(35,47,69,0.6)); border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
   .track-view-card.track-view-glow { animation: trackGlow .5s ease; }
   @keyframes trackGlow {
     0% { box-shadow: 0 0 0 0 var(--tv-accent, rgba(99,102,241,0.5)); }
@@ -127,26 +138,18 @@
   .track-view-card.active .track-accent { opacity: 1; background: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.16)); color: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-count { color: var(--tv-accent, #6366f1); }
-  .track-view-card[data-track-view="All"] { --tv-accent: #94a3b8; --tv-icon-bg: rgba(148,163,184,0.14); --tv-bg: #232f45; --tv-border: #334155; }
-  .track-view-card[data-track-view="DSA"] { --tv-accent: #6366f1; --tv-icon-bg: rgba(99,102,241,0.14); --tv-bg: linear-gradient(180deg, rgba(99,102,241,0.08), #1e293b); --tv-border: rgba(99,102,241,0.4); }
-  .track-view-card[data-track-view="LLD"] { --tv-accent: #06b6d4; --tv-icon-bg: rgba(6,182,212,0.14); --tv-bg: linear-gradient(180deg, rgba(6,182,212,0.08), #1e293b); --tv-border: rgba(6,182,212,0.4); }
-  .track-view-card[data-track-view="HLD"] { --tv-accent: #f472b6; --tv-icon-bg: rgba(244,114,182,0.14); --tv-bg: linear-gradient(180deg, rgba(244,114,182,0.08), #1e293b); --tv-border: rgba(244,114,182,0.4); }
-  .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"] { background: var(--tv-bg); }
+  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: rgba(41,52,76,0.6); --tv-border: #475569; }
+  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: linear-gradient(180deg, rgba(59,130,246,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(59,130,246,0.55); }
+  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: linear-gradient(180deg, rgba(34,211,238,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(34,211,238,0.55); }
+  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: linear-gradient(180deg, rgba(251,143,206,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(251,143,206,0.55); }
+  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: linear-gradient(180deg, rgba(250,204,21,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(250,204,21,0.55); }
+  .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"], .track-view-card.active[data-tab="queue"] { background: var(--tv-bg); }
   .tab-btn { border-color: transparent; color: #94a3b8; }
-  .tab-btn[data-tab="queue"] { border-color: #1e293b; background: #1e293b; position: relative; }
-  .tab-btn[data-tab="queue"].active { border-color: #6366f1; background: linear-gradient(180deg, rgba(99,102,241,0.12), #1e293b); }
-  /* Due-state indicator — plain color change, no animation. The header's
-     "glow" is now handled uniformly by .app-btn-ghost below (matching the
-     calendar pill and Add Problems button) instead of a one-off effect here. */
-  .tab-btn[data-tab="queue"]:has(#queue-badge:not(.hidden)) {
-    border-color: rgba(234,179,8,0.55);
-  }
-  .tab-btn[data-tab="queue"]:has(#queue-badge:not(.hidden)) i[data-lucide="repeat"] { color: #eab308; }
   .tab-btn[data-tab="calendar"] { color: #f59e0b; }
   .tab-btn[data-tab="calendar"].active { background: rgba(245,158,11,0.14); color: #f59e0b; }
-  .tab-btn[data-tab="ai"] { border-color: #1e293b; background: #1e293b; color: #06b6d4; }
+  .tab-btn[data-tab="ai"] { border-color: transparent; background: transparent; color: #06b6d4; }
   .tab-btn[data-tab="ai"].active { border-color: #06b6d4; background: linear-gradient(180deg, rgba(6,182,212,0.14), #1e293b); color: #06b6d4; }
-  .ai-pick-card { background: #131a2c; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .ai-pick-card { background: rgba(19,26,44,0.48); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .btn-nailed {
     background: linear-gradient(135deg, #10b981, #06b6d4);
     color: #04140f;
@@ -165,7 +168,6 @@
   .btn-struggled:active { transform: translateY(0) scale(0.98); }
   .ai-pick-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .spin { animation: spin 0.8s linear infinite; }
   .heat-cell { transition: transform .12s ease; }
   .heat-cell:hover { transform: scale(1.25); }
   .fade-in { animation: fadeIn .25s ease both; }
@@ -217,7 +219,7 @@
      closer to pfm_v9's header proportions (bigger logo mark, taller
      top/bottom padding) instead of the previous compact Tailwind bar.
      ===================================================================== */
-  .app-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid #1e293b; background: rgba(11,15,25,0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .app-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid #1e293b; background: rgba(11,15,25,0.68); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .app-header::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent); pointer-events: none; }
   .app-header-inner { position: relative; max-width: 80rem; margin: 0 auto; padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 14px; }
   .app-header-row { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
@@ -274,8 +276,8 @@
     .app-btn-cta, .app-btn-cta::before { animation: none; }
   }
   .app-btn-ghost {
-    background: #151b2b;
-    border-color: #1e293b;
+    background: transparent;
+    border: 1px solid transparent;
     position: relative;
     overflow: hidden;
     z-index: 0;
@@ -291,7 +293,7 @@
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    opacity: 0.6;
+    opacity: 0.85;
     pointer-events: none;
     z-index: 1;
     animation: alertBorderShift 6s ease-in-out infinite;
@@ -309,7 +311,7 @@
     z-index: 1;
     animation: alertShimmer 5.5s ease-in-out infinite;
   }
-  .app-btn-ghost:hover { border-color: #334155; }
+  .app-btn-ghost:hover { background: rgba(255,255,255,0.05); }
   .app-btn-ghost i, .app-btn-ghost svg, .app-btn-ghost span, .app-btn-ghost .app-header-badge {
     position: relative;
     z-index: 2;
@@ -317,11 +319,10 @@
   @media (prefers-reduced-motion: reduce) {
     .app-btn-ghost::before, .app-btn-ghost::after { animation: none; }
   }
-  .app-btn-icon { padding: 10px; color: #94a3b8; }
-  .app-btn-icon:hover { background: #1e293b; }
   .app-btn-short { display: none; }
   @media (max-width: 640px) { .app-btn-full { display: none; } .app-btn-short { display: inline; } }
   .app-header-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; padding: 0 4px; display: flex; align-items: center; justify-content: center; }
+  .app-header-badge-cyan { background: #06b6d4; color: #04222b; }
   .app-user-menu { position: relative; }
   .app-user-btn { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; padding: 7px 10px 7px 6px; cursor: pointer; transition: border-color .15s ease; }
   .app-user-btn:hover { border-color: #334155; }
@@ -331,7 +332,6 @@
   .app-user-name { font-size: 0.78rem; font-weight: 500; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   @media (max-width: 640px) { .app-user-name { display: none; } }
   .app-user-chevron { width: 18px; height: 18px; color: #94a3b8; }
-  .app-user-dot { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 999px; border: 2px solid #0b0f19; }
   .app-user-dropdown { position: fixed; width: 208px; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; box-shadow: 0 12px 32px -16px rgba(0,0,0,0.5); overflow: hidden; z-index: 200; }
   .app-user-dropdown-header { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
   .app-user-dropdown-name { font-size: 0.78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
@@ -360,10 +360,10 @@
     box-shadow: 0 14px 30px -14px var(--node-color) !important;
     border-color: var(--node-color) !important;
   }
-  /* gradient top bar, always faintly present, brightens on hover/active — echoes .goal-nodal::before */
-  .stat-card::before { height: 4px; background: linear-gradient(90deg, var(--node-color), transparent 140%); opacity: .55; transition: opacity .25s ease; }
+  /* solid top bar, always present, brightens further on hover/active */
+  .stat-card::before { height: 4px; background: var(--node-color); opacity: .85; transition: opacity .25s ease; }
   .stat-card:hover::before, .stat-card.stat-card-active::before { opacity: 1; }
-  .track-view-card .track-accent { height: 4px !important; background: linear-gradient(90deg, var(--node-color), transparent 140%) !important; opacity: .35 !important; }
+  .track-view-card .track-accent { height: 4px !important; background: var(--node-color) !important; opacity: .55 !important; }
   .track-view-card:hover .track-accent, .track-view-card.active .track-accent { opacity: 1 !important; }
   .ai-pick-card { position: relative; overflow: hidden; }
   .ai-pick-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--node-color), transparent 140%); opacity: .55; transition: opacity .25s ease; }
@@ -374,6 +374,7 @@
 </style>
 </head>
 <body class="bg-bg text-ink min-h-screen">
+<canvas id="bg3d-canvas" style="position:fixed; inset:0; width:100%; height:100%; z-index:-2; pointer-events:none; display:block;"></canvas>
 
 <!-- ===================== LOGIN SCREEN ===================== -->
 <div id="login-screen" class="fixed inset-0 z-[100] bg-bg flex items-center justify-center p-4">
@@ -430,17 +431,13 @@
 
       <div class="app-header-spacer"></div>
 
-      <button data-tab="queue" class="app-btn app-btn-ghost tab-btn" style="position:relative;">
-        <i data-lucide="repeat"></i><span class="app-btn-full">Revision Queue</span><span class="app-btn-short">Queue</span>
-        <span id="queue-badge" class="app-header-badge hidden">0</span>
-      </button>
-
-      <button data-tab="ai" title="AI Suggestions" class="app-btn app-btn-ghost tab-btn">
-        <i data-lucide="sparkles"></i><span class="app-btn-full">AI Suggestions</span><span class="app-btn-short">AI</span>
-      </button>
-
       <button id="sync-status-pill" class="sync-status-pill not-connected" title="Google Sheet sync status — click to open sync settings">
         <i data-lucide="cloud"></i>
+      </button>
+
+      <button data-tab="ai" title="AI Suggestions" class="app-btn app-btn-ghost tab-btn" style="position:relative;">
+        <i data-lucide="sparkles"></i><span class="app-btn-full">AI Suggestions</span><span class="app-btn-short">AI</span>
+        <span id="ai-badge" class="app-header-badge app-header-badge-cyan hidden">0</span>
       </button>
 
       <button data-tab="calendar" title="Calendar" class="date-pill tab-btn">
@@ -455,7 +452,6 @@
           </div>
           <span id="user-name-label" class="app-user-name">Guest</span>
           <i data-lucide="chevron-down" class="app-user-chevron"></i>
-          <span id="sync-status-dot" class="app-user-dot hidden bg-hard"></span>
         </button>
         <div id="user-menu-dropdown" class="app-user-dropdown hidden fade-in">
           <div class="app-user-dropdown-header">
@@ -481,7 +477,7 @@
 <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
   <!-- ===================== TRACK SWITCHER (top-level DSA / LLD / HLD pages) ===================== -->
-  <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <section class="grid grid-cols-2 sm:grid-cols-5 gap-3">
     <button data-track-view="All" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
       <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
       <div class="flex items-center justify-between gap-2">
@@ -492,6 +488,17 @@
       </div>
       <p class="text-sm font-semibold mt-3">All Tracks</p>
       <p class="text-[11px] text-mute mt-0.5">Everything in one view</p>
+    </button>
+    <button data-tab="queue" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
+      <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
+      <div class="flex items-center justify-between gap-2">
+        <div class="track-icon w-9 h-9 rounded-lg bg-surface3 flex items-center justify-center text-mute transition-colors">
+          <i data-lucide="repeat" class="w-6 h-6"></i>
+        </div>
+        <p id="queue-count-nodal" class="track-count font-num text-xl font-bold text-mute transition-colors">0</p>
+      </div>
+      <p class="text-sm font-semibold mt-3">Revision Queue</p>
+      <p class="text-[11px] text-mute mt-0.5">Due within the next 7 days</p>
     </button>
     <button data-track-view="DSA" class="track-view-card group relative text-left bg-surface border border-line hover:border-line2 rounded-2xl p-4 overflow-hidden transition shadow-card">
       <span class="track-accent absolute top-0 left-0 right-0 h-[3px] opacity-0 transition-opacity"></span>
@@ -558,18 +565,18 @@
         <p id="stat-hard" class="font-num text-xl font-bold leading-none mt-1 text-hard">0</p>
       </div>
     </button>
-    <button data-stat-filter="due" style="--sc-accent:#06b6d4; --sc-icon-bg:rgba(6,182,212,0.16); --sc-border:#06b6d4;" class="stat-card stat-card-outline text-left rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+    <button data-stat-filter="due" style="--sc-accent:#f97316; --sc-icon-bg:rgba(249,115,22,0.16); --sc-border:#f97316;" class="stat-card stat-card-outline text-left rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
       <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="alarm-clock" class="w-5 h-5"></i></div>
       <div class="min-w-0">
-        <p class="text-brand-2 text-[10px] font-semibold uppercase tracking-wide truncate">Due Today</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wide truncate" style="color:#f97316;">Due Today</p>
         <p id="stat-due" class="font-num text-xl font-bold leading-none mt-1">0</p>
       </div>
     </button>
-    <button data-stat-filter="ok" style="--sc-accent:#4ade80; --sc-icon-bg:rgba(74,222,128,0.16); --sc-border:#4ade80;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
+    <button data-stat-filter="ok" style="--sc-accent:#14b8a6; --sc-icon-bg:rgba(20,184,166,0.16); --sc-border:#14b8a6;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
       <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
       <div class="min-w-0">
         <p class="text-mute text-[10px] font-semibold uppercase tracking-wide truncate">Completed</p>
-        <p id="stat-completed" class="font-num text-xl font-bold leading-none mt-1 text-easy">0</p>
+        <p id="stat-completed" class="font-num text-xl font-bold leading-none mt-1" style="color:#14b8a6;">0</p>
         <p id="stat-completed-breakdown" class="text-[10px] font-num text-mute mt-1 truncate"></p>
       </div>
     </button>
@@ -643,6 +650,12 @@
             class="w-full bg-surface2 border border-line rounded-lg pl-9 pr-3 py-2 text-sm placeholder:text-mute" />
         </div>
         <div class="flex flex-wrap gap-2">
+          <select id="filter-track" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
+            <option value="all">All Tracks</option>
+            <option value="DSA">DSA</option>
+            <option value="LLD">LLD</option>
+            <option value="HLD">HLD</option>
+          </select>
           <select id="filter-difficulty" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
             <option value="all">All Difficulties</option>
             <option value="Easy">Easy</option>
@@ -684,24 +697,36 @@
 
     <div class="bg-surface border border-line rounded-xl overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-line bg-surface2/60 text-mute text-xs uppercase tracking-wide">
-              <th class="text-left font-medium px-4 py-3 w-10">
+        <table class="w-full min-w-[960px] text-sm table-fixed">
+          <colgroup>
+            <col style="width:3%">
+            <col style="width:12%">
+            <col style="width:5%">
+            <col style="width:25%">
+            <col style="width:8%">
+            <col style="width:9%">
+            <col style="width:9%">
+            <col style="width:6%">
+            <col style="width:11%">
+            <col style="width:12%">
+          </colgroup>
+          <thead class="sticky top-0 z-10">
+            <tr class="border-b border-line bg-surface2/90 backdrop-blur text-mute text-xs uppercase tracking-wide">
+              <th class="text-left font-medium px-4 py-3">
                 <input type="checkbox" id="select-all-checkbox" class="w-4 h-4 rounded border-line2 accent-brand cursor-pointer" title="Select all on this page">
               </th>
-              <th class="text-left font-medium px-4 py-3 w-28">Status</th>
-              <th class="text-left font-medium px-4 py-3 w-20">Track</th>
+              <th class="text-left font-medium px-2 py-3">Status</th>
+              <th class="text-left font-medium px-1 py-3">Track</th>
               <th class="text-left font-medium px-4 py-3">Title</th>
-              <th class="text-left font-medium px-4 py-3 w-24">Difficulty</th>
-              <th class="text-left font-medium px-4 py-3 w-32">Category</th>
-              <th class="text-left font-medium px-4 py-3 w-32">Last Revised</th>
-              <th class="text-center font-medium px-4 py-3 w-20" title="Number of times marked revised">Revisions</th>
-              <th class="text-left font-medium px-4 py-3 w-32">Next Review</th>
-              <th class="text-right font-medium px-4 py-3 w-24">Actions</th>
+              <th class="text-left font-medium px-4 py-3">Difficulty</th>
+              <th class="text-left font-medium px-3 py-3">Category</th>
+              <th class="text-left font-medium px-4 py-3">Last Revised</th>
+              <th class="text-center font-medium px-2 py-3" title="Number of times marked revised">Revisions</th>
+              <th class="text-left font-medium pl-4 pr-1 py-3">Next Review</th>
+              <th class="text-left font-medium pl-1 pr-2 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody id="problems-tbody"></tbody>
+          <tbody id="problems-tbody" class="divide-y divide-line/60"></tbody>
         </table>
       </div>
       <div id="empty-all" class="hidden flex-col items-center justify-center py-16 px-4 text-center">
@@ -731,7 +756,7 @@
 
   <!-- ===================== MODAL: ADD NEW ===================== -->
   <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-surface border border-line rounded-xl p-6 max-w-2xl w-full my-8 relative fade-in">
+    <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl p-6 max-w-2xl w-full my-8 relative fade-in">
       <button id="add-modal-close" type="button" class="absolute top-4 right-4 text-mute hover:text-ink transition">
         <i data-lucide="x" class="w-7 h-7"></i>
       </button>
@@ -912,7 +937,7 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
 
 <!-- ===================== EDIT NOTE PREVIEW MODAL (view notes) ===================== -->
 <div id="notes-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
-  <div class="bg-surface border border-line rounded-xl max-w-lg w-full p-5 fade-in">
+  <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl max-w-lg w-full p-5 fade-in">
     <div class="flex items-center justify-between mb-3">
       <h3 id="notes-modal-title" class="font-semibold text-sm"></h3>
       <button id="notes-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -922,7 +947,7 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
 </div>
 
 <div id="time-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
-  <div class="bg-surface border border-line rounded-xl max-w-sm w-full p-5 fade-in">
+  <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl max-w-sm w-full p-5 fade-in">
     <div class="flex items-center justify-between mb-1">
       <h3 class="font-semibold text-sm flex items-center gap-2"><i data-lucide="timer" class="w-6 h-6 text-brand-2"></i>How long did it take?</h3>
       <button id="time-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -941,7 +966,7 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
 </div>
 
 <div id="sync-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
-  <div class="bg-surface border border-line rounded-xl max-w-md w-full p-5 fade-in">
+  <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl max-w-md w-full p-5 fade-in">
     <div class="flex items-center justify-between mb-1">
       <h3 class="font-semibold text-sm flex items-center gap-2"><i data-lucide="refresh-cw" class="w-6 h-6 text-brand-2"></i>Google Sheet Sync</h3>
       <button id="sync-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -1224,6 +1249,13 @@ function isDue(p) {
   return p.nextReview && String(p.nextReview).slice(0, 10) <= todayISO();
 }
 
+// Revision Queue window: overdue + due today + anything coming due in the next 7 days.
+function isDueWithinWeek(p) {
+  if (!p.nextReview) return false;
+  const weekOut = addDaysISO(todayISO(), 7);
+  return String(p.nextReview).slice(0, 10) <= weekOut;
+}
+
 /* =========================================================
    TOP-LEVEL TRACK VIEW (DSA / LLD / HLD / All)
    Scopes stats, table, queue, calendar and heatmap to one
@@ -1239,7 +1271,7 @@ function trackScopedProblems() {
 function setTrackView(track) {
   currentTrack = track;
   localStorage.setItem(TRACK_VIEW_KEY, track);
-  document.querySelectorAll('.track-view-card').forEach(btn => {
+  document.querySelectorAll('.track-view-card[data-track-view]').forEach(btn => {
     const isActive = btn.dataset.trackView === track;
     btn.classList.toggle('active', isActive);
     btn.classList.remove('track-view-glow');
@@ -1253,11 +1285,21 @@ function setTrackView(track) {
   currentPage = 1;
   renderAll();
 }
+
+// All five nodals (All Tracks, Revision Queue, DSA, LLD, HLD) share the same
+// .track-view-card markup, CSS, and click wiring. Track nodals carry
+// data-track-view and filter the dashboard; the Revision Queue nodal carries
+// data-tab instead and switches tabs — same look, same active/glow treatment.
 document.querySelectorAll('.track-view-card').forEach(btn => {
   btn.addEventListener('click', () => {
-    const track = btn.dataset.trackView;
-    const isAlreadyActive = btn.classList.contains('active');
-    setTrackView(isAlreadyActive && track !== 'All' ? 'All' : track);
+    if (btn.dataset.trackView) {
+      const track = btn.dataset.trackView;
+      const isAlreadyActive = btn.classList.contains('active');
+      setTrackView(isAlreadyActive && track !== 'All' ? 'All' : track);
+    } else if (btn.dataset.tab) {
+      const isAlreadyActive = btn.classList.contains('active');
+      showTab(isAlreadyActive ? 'dashboard' : btn.dataset.tab);
+    }
   });
 });
 
@@ -1268,9 +1310,22 @@ const tabs = ['dashboard','queue','calendar','ai'];
 function showTab(name) {
   tabs.forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('hidden', t !== name);
-    const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
-    if (btn) btn.classList.toggle('active', t === name);
+    document.querySelectorAll(`.tab-btn[data-tab="${t}"]`).forEach(btn => {
+      btn.classList.toggle('active', t === name);
+    });
   });
+  // Revision Queue nodal — same active/glow treatment as the track nodals.
+  const queueNodal = document.querySelector('.track-view-card[data-tab="queue"]');
+  if (queueNodal) {
+    const isActive = name === 'queue';
+    queueNodal.classList.toggle('active', isActive);
+    queueNodal.classList.remove('track-view-glow');
+    if (isActive) {
+      void queueNodal.offsetWidth; // force reflow so animation can retrigger
+      queueNodal.classList.add('track-view-glow');
+      queueNodal.addEventListener('animationend', () => queueNodal.classList.remove('track-view-glow'), { once: true });
+    }
+  }
   if (name === 'calendar') renderCalendar();
   if (name === 'ai') { aiRotation = 0; renderAiPicks(); }
   window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1279,7 +1334,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const target = btn.dataset.tab;
     const isActive = btn.classList.contains('active');
-    if ((target === 'calendar' || target === 'queue' || target === 'ai') && isActive) {
+    if ((target === 'calendar' || target === 'ai') && isActive) {
       showTab('dashboard');
     } else {
       showTab(target);
@@ -1447,19 +1502,25 @@ function overdueLabel(p) {
   return `<span class="text-mute">due in ${Math.abs(days)}d</span>`;
 }
 
-function buildAiPickCard(p) {
+function buildAiPickCard(p, index) {
   const el = document.createElement('div');
   el.className = 'ai-pick-card border border-line rounded-xl p-4';
-  // Node color per track — same theming convention as .stat-card / .track-view-card,
-  // so the shared "nodal" CSS (top bar, hover glow, diagonal tint) picks up per-card hues.
-  const nodeColors = {
-    DSA: { accent: '#6366f1', bg: 'rgba(99,102,241,0.16)' },
-    LLD: { accent: '#06b6d4', bg: 'rgba(6,182,212,0.16)' },
-    HLD: { accent: '#f472b6', bg: 'rgba(244,114,182,0.16)' },
-  };
-  const nc = nodeColors[p.track] || nodeColors.DSA;
-  el.style.setProperty('--sc-accent', nc.accent);
-  el.style.setProperty('--sc-icon-bg', nc.bg);
+  // Each card gets a distinct hue from a rotating palette (independent of
+  // track) purely so adjacent picks read as visually separate at a glance —
+  // the track badge inside the card still carries the actual DSA/LLD/HLD info.
+  const nodePalette = [
+    '#6366f1', // indigo
+    '#06b6d4', // cyan
+    '#f472b6', // pink
+    '#f59e0b', // amber
+    '#10b981', // emerald
+    '#8b5cf6', // violet
+    '#fb923c', // orange
+    '#38bdf8', // sky
+  ];
+  const accent = nodePalette[(index || 0) % nodePalette.length];
+  el.style.setProperty('--sc-accent', accent);
+  el.style.setProperty('--sc-icon-bg', accent + '29'); // ~16% alpha icon wash
   el.innerHTML = `
     <div class="flex items-center gap-2 mb-2 flex-wrap">
       ${trackBadge(p.track)}
@@ -1474,12 +1535,12 @@ function buildAiPickCard(p) {
       ${p.description ? `<button type="button" class="ai-view-btn text-[11px] text-mute hover:text-brand-2 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i>View Problem</button>` : ''}
     </div>
     ${p.notes ? `<p class="text-xs text-mute mb-3 line-clamp-3">${escapeHtml(p.notes)}</p>` : ''}
-    <div class="grid grid-cols-2 gap-2">
-      <button type="button" class="ai-nailed-btn btn-nailed font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 justify-center">
-        <i data-lucide="check-circle-2" class="w-5 h-5"></i> Nailed It <span class="text-[10px] opacity-70 font-num">→ ${LADDER[Math.min(p.intervalIndex+1, LADDER.length-1)]}d</span>
+    <div class="flex items-center gap-1.5 mt-1">
+      <button type="button" class="ai-nailed-btn btn-nailed text-xs font-semibold pl-2.5 pr-2 py-1.5 rounded-md flex items-center gap-1 flex-1 justify-center">
+        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Nailed It <span class="text-[9px] opacity-70 font-num">→${LADDER[Math.min(p.intervalIndex+1, LADDER.length-1)]}d</span>
       </button>
-      <button type="button" class="ai-struggled-btn btn-struggled font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 justify-center">
-        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Struggled
+      <button type="button" class="ai-struggled-btn btn-struggled text-xs font-medium px-2.5 py-1.5 rounded-md flex items-center gap-1 justify-center">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Struggled
       </button>
     </div>
   `;
@@ -1510,6 +1571,19 @@ function ensureAiToday(forceNew = false) {
   return state;
 }
 
+function updateAiBadge() {
+  const state = ensureAiToday();
+  const remaining = state.ids.map(id => problems.find(p => p.id === id)).filter(Boolean).length;
+  const badge = document.getElementById('ai-badge');
+  if (!badge) return;
+  if (remaining > 0) {
+    badge.textContent = remaining;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
 function renderAiPicks() {
   const state = ensureAiToday();
   const grid = document.getElementById('ai-picks-grid');
@@ -1524,6 +1598,7 @@ function renderAiPicks() {
     state.ids = remaining.map(p => p.id);
     saveAiToday(state);
   }
+  updateAiBadge();
 
   if (state.total === 0) {
     // Nothing was available to pick from at all — the original "add some
@@ -1549,7 +1624,7 @@ function renderAiPicks() {
   done.classList.add('hidden');
   done.classList.remove('flex');
 
-  remaining.forEach(p => grid.appendChild(buildAiPickCard(p)));
+  remaining.forEach((p, i) => grid.appendChild(buildAiPickCard(p, i)));
   safeCreateIcons();
 }
 
@@ -1587,13 +1662,8 @@ function renderStats() {
       ].join(' ')
     : '';
 
-  const badge = document.getElementById('queue-badge');
-  if (due > 0) {
-    badge.textContent = due;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
+  const queueCountEl = document.getElementById('queue-count-nodal');
+  if (queueCountEl) queueCountEl.textContent = scoped.filter(isDueWithinWeek).length;
 }
 
 /* =========================================================
@@ -1626,13 +1696,13 @@ function renderHeatmap() {
     const intensity = c === 0 ? 0 : Math.ceil((c / max) * 4);
     const shades = [
       'bg-surface2 border border-line',
-      'bg-brand/25 border border-brand/30',
-      'bg-brand/50 border border-brand/40',
-      'bg-brand/75 border border-brand/60',
-      'bg-gradient-to-br from-brand to-brand-2 border border-brand-2/50',
+      'bg-teal-500/40 border border-teal-400/50',
+      'bg-brand-2/60 border border-brand-2/70',
+      'bg-amber-500/70 border border-amber-400/70',
+      'bg-gradient-to-br from-pink-500 to-hard border border-pink-400/70',
     ];
     const cell = document.createElement('div');
-    cell.className = `heat-cell w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm shrink-0 ${shades[intensity]}`;
+    cell.className = `heat-cell w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-sm shrink-0 ${shades[intensity]}`;
     cell.addEventListener('mouseenter', () => showHeatmapTooltip(cell, d, namesByDay[d] || []));
     cell.addEventListener('mouseleave', hideHeatmapTooltip);
     container.appendChild(cell);
@@ -1896,11 +1966,13 @@ function escapeHtml(str) {
 
 function getFilteredProblems() {
   const search = document.getElementById('search-input').value.trim().toLowerCase();
+  const trackFilter = document.getElementById('filter-track').value;
   const diff = document.getElementById('filter-difficulty').value;
   const tag = document.getElementById('filter-tag').value;
   const status = document.getElementById('filter-status').value;
 
   return trackScopedProblems()
+    .filter(p => trackFilter === 'all' || (p.track || 'DSA') === trackFilter)
     .filter(p => !search || p.title.toLowerCase().includes(search))
     .filter(p => diff === 'all' || p.difficulty === diff)
     .filter(p => tag === 'all' || p.category === tag)
@@ -1950,23 +2022,23 @@ function renderTable() {
   pageList.forEach(p => {
     const due = isDue(p);
     const tr = document.createElement('tr');
-    tr.className = 'row-enter border-b border-line/60 hover:bg-surface2/50 transition';
+    tr.className = 'row-enter border-b border-line/60 even:bg-surface2/25 hover:bg-surface2/60 transition';
     tr.innerHTML = `
       <td class="px-4 py-3">
         <input type="checkbox" data-select="${p.id}" class="w-4 h-4 rounded border-line2 accent-brand cursor-pointer" ${selectedIds.has(p.id) ? 'checked' : ''}>
       </td>
-      <td class="px-4 py-3">
+      <td class="px-2 py-3">
         ${due
-          ? `<span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-overdue bg-overdue/10 border border-overdue/30 px-2 py-1 rounded-full"><i data-lucide="alarm-clock" class="w-5 h-5"></i>Needs Revision</span>`
-          : `<span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-easy bg-easy/10 border border-easy/30 px-2 py-1 rounded-full"><i data-lucide="check" class="w-5 h-5"></i>Completed</span>`
+          ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-overdue bg-overdue/10 border border-overdue/30 px-1.5 py-1 rounded-full whitespace-nowrap"><i data-lucide="alarm-clock" class="w-4 h-4 shrink-0"></i>Needs Revision</span>`
+          : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-easy bg-easy/10 border border-easy/30 px-1.5 py-1 rounded-full whitespace-nowrap"><i data-lucide="check" class="w-4 h-4 shrink-0"></i>Completed</span>`
         }
       </td>
-      <td class="px-4 py-3">${trackBadge(p.track)}</td>
-      <td class="px-4 py-3">
+      <td class="px-1 py-3">${trackBadge(p.track)}</td>
+      <td class="px-4 py-3 min-w-0">
         <div class="flex flex-col min-w-0">
           ${p.link
-            ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="font-medium hover:text-brand-2 transition flex items-center gap-1.5">${escapeHtml(p.title)}<i data-lucide="external-link" class="w-5 h-5 text-mute"></i></a>`
-            : `<span class="font-medium">${escapeHtml(p.title)}</span>`
+            ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="font-medium hover:text-brand-2 transition flex items-center gap-1.5 min-w-0"><span class="truncate">${escapeHtml(p.title)}</span><i data-lucide="external-link" class="w-5 h-5 text-mute shrink-0"></i></a>`
+            : `<span class="font-medium truncate block">${escapeHtml(p.title)}</span>`
           }
           <div class="flex items-center gap-2.5 mt-0.5 flex-wrap">
             ${p.description ? `<button data-description="${p.id}" class="text-[11px] text-mute hover:text-brand-2 text-left flex items-center gap-1 w-fit"><i data-lucide="file-text" class="w-5 h-5"></i>View Problem</button>` : ''}
@@ -1975,22 +2047,22 @@ function renderTable() {
           </div>
         </div>
       </td>
-      <td class="px-4 py-3">${diffBadge(p.difficulty)}</td>
-      <td class="px-4 py-3"><span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute">${escapeHtml(p.category)}</span></td>
-      <td class="px-4 py-3 font-num text-xs text-mute">${fmtDisplay(p.lastRevised)}</td>
-      <td class="px-4 py-3 text-center">
+      <td class="px-4 py-3"><span class="inline-block max-w-full">${diffBadge(p.difficulty)}</span></td>
+      <td class="px-3 py-3"><span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute whitespace-nowrap inline-block">${escapeHtml(p.category)}</span></td>
+      <td class="px-4 py-3 font-num text-xs text-mute whitespace-nowrap">${fmtDisplay(p.lastRevised)}</td>
+      <td class="px-2 py-3 text-center">
         <span class="inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded-full text-[11px] font-num font-semibold bg-brand-2/10 text-brand-2 border border-brand-2/30" title="Revised ${revisionCountFor(p.id)} time${revisionCountFor(p.id) === 1 ? '' : 's'}">${revisionCountFor(p.id)}</span>
       </td>
-      <td class="px-4 py-3">
-        <p class="font-num text-xs ${due ? 'text-overdue font-semibold' : 'text-mute'}">${fmtDisplay(p.nextReview)}</p>
+      <td class="pl-4 pr-1 py-3">
+        <p class="font-num text-xs whitespace-nowrap ${due ? 'text-overdue font-semibold' : 'text-mute'}">${fmtDisplay(p.nextReview)}</p>
         <div class="mt-1">${ladderDots(p)}</div>
       </td>
-      <td class="px-4 py-3">
-        <div class="flex items-center justify-end gap-1">
-          <button data-revise-early="${p.id}" title="${due ? 'Mark as revised' : 'Level up (skip to next interval)'}" class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-easy transition"><i data-lucide="trending-up" class="w-5 h-5"></i></button>
-          <button data-requeue="${p.id}" title="${due ? 'Already in Revision Queue' : 'Restart revision cycle from day 1'}" ${due ? 'disabled' : ''} class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"><i data-lucide="calendar-clock" class="w-5 h-5"></i></button>
-          <button data-edit="${p.id}" title="Edit" class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition"><i data-lucide="pencil" class="w-5 h-5"></i></button>
-          <button data-delete="${p.id}" title="Delete" class="p-1.5 rounded-md hover:bg-surface3 text-mute hover:text-hard transition"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+      <td class="pl-1 pr-2 py-3">
+        <div class="flex items-center justify-start gap-0.5 flex-wrap">
+          <button data-revise-early="${p.id}" title="${due ? 'Mark as revised' : 'Level up (skip to next interval)'}" class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-easy transition shrink-0"><i data-lucide="trending-up" class="w-4 h-4"></i></button>
+          <button data-requeue="${p.id}" title="${due ? 'Already in Revision Queue' : 'Restart revision cycle from day 1'}" ${due ? 'disabled' : ''} class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed shrink-0"><i data-lucide="calendar-clock" class="w-4 h-4"></i></button>
+          <button data-edit="${p.id}" title="Edit" class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition shrink-0"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+          <button data-delete="${p.id}" title="Delete" class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-hard transition shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
       </td>
     `;
@@ -2143,14 +2215,22 @@ function attachRowEvents() {
 ========================================================= */
 function renderQueue() {
   const list = document.getElementById('queue-list');
-  const due = trackScopedProblems().filter(isDue).sort((a,b) => a.nextReview.localeCompare(b.nextReview));
+  const due = trackScopedProblems().filter(isDueWithinWeek).sort((a,b) => a.nextReview.localeCompare(b.nextReview));
   list.innerHTML = '';
 
   document.getElementById('empty-queue').classList.toggle('flex', due.length === 0);
   document.getElementById('empty-queue').classList.toggle('hidden', due.length !== 0);
 
   due.forEach(p => {
-    const overdueDays = Math.max(0, Math.round((new Date(todayISO()) - new Date(p.nextReview)) / 86400000));
+    const dayDiff = Math.round((new Date(p.nextReview) - new Date(todayISO())) / 86400000);
+    let dueLabel;
+    if (dayDiff > 0) {
+      dueLabel = `<span class="text-[11px] text-mute font-medium">due in ${dayDiff}d</span>`;
+    } else if (dayDiff === 0) {
+      dueLabel = `<span class="text-[11px] text-medium font-medium">due today</span>`;
+    } else {
+      dueLabel = `<span class="text-[11px] text-overdue font-medium">${Math.abs(dayDiff)}d overdue</span>`;
+    }
     const card = document.createElement('div');
     card.className = 'row-enter bg-surface border border-line rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between';
     card.innerHTML = `
@@ -2159,7 +2239,7 @@ function renderQueue() {
           ${trackBadge(p.track)}
           ${diffBadge(p.difficulty)}
           <span class="text-xs bg-surface3 border border-line px-2 py-0.5 rounded-md text-mute">${escapeHtml(p.category)}</span>
-          ${overdueDays > 0 ? `<span class="text-[11px] text-overdue font-medium">${overdueDays}d overdue</span>` : `<span class="text-[11px] text-medium font-medium">due today</span>`}
+          ${dueLabel}
         </div>
         <p class="font-medium truncate">${escapeHtml(p.title)}</p>
         <div class="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1">
@@ -2597,7 +2677,7 @@ function applyRevision(id, outcome = 'good', minutes = null) {
 /* =========================================================
    FILTER EVENTS
 ========================================================= */
-['search-input','filter-difficulty','filter-tag','filter-status'].forEach(id => {
+['search-input','filter-track','filter-difficulty','filter-tag','filter-status'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => { currentPage = 1; renderTable(); });
   document.getElementById(id).addEventListener('change', () => { currentPage = 1; renderTable(); });
 });
@@ -2710,9 +2790,17 @@ document.querySelectorAll('[data-stat-filter]').forEach(card => {
    MASTER RENDER
 ========================================================= */
 function renderAll() {
-  document.querySelectorAll('.track-view-card').forEach(btn => {
+  document.querySelectorAll('.track-view-card[data-track-view]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.trackView === currentTrack);
   });
+  const trackFilterSel = document.getElementById('filter-track');
+  if (trackFilterSel) {
+    trackFilterSel.disabled = currentTrack !== 'All';
+    trackFilterSel.title = currentTrack === 'All' ? '' : `Already scoped to ${currentTrack} — switch to "All Tracks" to filter by track`;
+    trackFilterSel.classList.toggle('opacity-50', currentTrack !== 'All');
+    trackFilterSel.classList.toggle('cursor-not-allowed', currentTrack !== 'All');
+    if (currentTrack !== 'All') trackFilterSel.value = 'all';
+  }
   document.getElementById('track-count-All').textContent = problems.length;
   document.getElementById('track-count-DSA').textContent = problems.filter(p => (p.track || 'DSA') === 'DSA').length;
   document.getElementById('track-count-LLD').textContent = problems.filter(p => p.track === 'LLD').length;
@@ -2724,6 +2812,7 @@ function renderAll() {
   renderCategoryOptions();
   renderTable();
   renderQueue();
+  updateAiBadge();
   if (!document.getElementById('tab-ai').classList.contains('hidden')) { aiRotation = 0; renderAiPicks(); }
 }
 
@@ -3175,14 +3264,6 @@ let autoSyncInterval = null;
 
 function setSyncStatusDot(state) {
   // state: 'ok' | 'error' | 'busy' | 'off'
-  const dot = document.getElementById('sync-status-dot');
-  if (dot) {
-    const colors = { ok: 'bg-easy', error: 'bg-hard', busy: 'bg-medium', off: '' };
-    dot.classList.remove('hidden', 'bg-easy', 'bg-hard', 'bg-medium');
-    if (state === 'off' || !syncConfig.url) { dot.classList.add('hidden'); }
-    else { dot.classList.add(colors[state] || 'bg-medium'); }
-  }
-
   const pill = document.getElementById('sync-status-pill');
   if (pill) {
     pill.classList.remove('not-connected', 'ok', 'error', 'busy');
@@ -3467,6 +3548,184 @@ safeCreateIcons();
 // then decide whether to show the login screen or resume an existing session.
 window.addEventListener('load', () => setTimeout(initAuth, 150));
 updateHeaderDatePill();
+</script>
+
+<!-- =========================================================
+     3D DSA GRAPH / TREE NODES BACKGROUND (three.js)
+     Loose clusters of nodes ("graph vertices") linked by edges that
+     brighten/dim as if data were traversing them — a nod to the app's
+     DSA/graph-and-tree theme. Sits behind all app content
+     (canvas z-index:-2, pointer-events:none). Purely decorative —
+     doesn't touch app state or logic.
+========================================================= -->
+<script>
+(function initBg3D() {
+  if (typeof THREE === 'undefined') return; // CDN blocked/offline — fail silently, app still works
+
+  const canvas = document.getElementById('bg3d-canvas');
+  if (!canvas) return;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 13;
+
+  // Brand palette pulled from the tailwind config above (brand, brand-2, accent, cyan)
+  const PALETTE = [
+    new THREE.Color('#6366f1'), // brand indigo
+    new THREE.Color('#06b6d4'), // cyan
+    new THREE.Color('#ec4899'), // pink accent
+    new THREE.Color('#f8fafc'), // soft white node
+  ];
+
+  // ---------- Build several loose "graph clusters" (like small trees/graphs) ----------
+  const CLUSTER_COUNT = 7;
+  const NODES_PER_CLUSTER_MIN = 6;
+  const NODES_PER_CLUSTER_MAX = 11;
+  const MAX_EDGE_DIST = 3.6; // nodes closer than this within a cluster get an edge
+
+  const nodeGroup = new THREE.Group();
+  const edgeGroup = new THREE.Group();
+  scene.add(edgeGroup);
+  scene.add(nodeGroup);
+
+  const allNodes = []; // { mesh, basePos, phase, speed, cluster }
+  const allEdges = []; // { line, a, b, material, phase, speed }
+
+  const nodeGeo = new THREE.SphereGeometry(1, 10, 10);
+
+  for (let c = 0; c < CLUSTER_COUNT; c++) {
+    // pick a random "home" position for this cluster, spread wide in view volume
+    const home = new THREE.Vector3(
+      (Math.random() - 0.5) * 30,
+      (Math.random() - 0.5) * 20,
+      (Math.random() - 0.5) * 18
+    );
+    const clusterColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+    const nodeCount = NODES_PER_CLUSTER_MIN + Math.floor(Math.random() * (NODES_PER_CLUSTER_MAX - NODES_PER_CLUSTER_MIN));
+
+    const clusterNodes = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const offset = new THREE.Vector3(
+        (Math.random() - 0.5) * 6.5,
+        (Math.random() - 0.5) * 6.5,
+        (Math.random() - 0.5) * 5
+      );
+      const pos = home.clone().add(offset);
+
+      const size = Math.random() * 0.075 + 0.05;
+      const mat = new THREE.MeshBasicMaterial({
+        color: clusterColor,
+        transparent: true,
+        opacity: 0.95,
+      });
+      const mesh = new THREE.Mesh(nodeGeo, mat);
+      mesh.scale.setScalar(size);
+      mesh.position.copy(pos);
+      nodeGroup.add(mesh);
+
+      const nodeData = {
+        mesh,
+        basePos: pos.clone(),
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.3 + 0.12,
+        driftAmp: Math.random() * 0.55 + 0.25,
+      };
+      allNodes.push(nodeData);
+      clusterNodes.push(nodeData);
+    }
+
+    // connect nearby nodes within the cluster (sparse, tree/graph-like — not fully connected)
+    for (let i = 0; i < clusterNodes.length; i++) {
+      for (let j = i + 1; j < clusterNodes.length; j++) {
+        const dist = clusterNodes[i].basePos.distanceTo(clusterNodes[j].basePos);
+        if (dist < MAX_EDGE_DIST && Math.random() < 0.55) {
+          const geo = new THREE.BufferGeometry().setFromPoints([
+            clusterNodes[i].basePos, clusterNodes[j].basePos
+          ]);
+          const mat = new THREE.LineBasicMaterial({
+            color: clusterColor,
+            transparent: true,
+            opacity: 0.22,
+          });
+          const line = new THREE.Line(geo, mat);
+          edgeGroup.add(line);
+          allEdges.push({
+            line, a: clusterNodes[i], b: clusterNodes[j], material: mat,
+            phase: Math.random() * Math.PI * 2,
+            speed: Math.random() * 0.5 + 0.25,
+          });
+        }
+      }
+    }
+  }
+
+  // gentle parallax toward the mouse, kept subtle so it stays in the background
+  let targetX = 0, targetY = 0;
+  window.addEventListener('mousemove', (e) => {
+    targetX = (e.clientX / window.innerWidth - 0.5) * 1.1;
+    targetY = (e.clientY / window.innerHeight - 0.5) * 1.1;
+  });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  const clock = new THREE.Clock();
+  let rafId;
+  function animate() {
+    rafId = requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    scene.rotation.y = Math.sin(t * 0.035) * 0.12 + t * 0.015;
+    scene.rotation.x = Math.sin(t * 0.05) * 0.06;
+
+    camera.position.x += (targetX - camera.position.x) * 0.02;
+    camera.position.y += (-targetY - camera.position.y) * 0.02;
+    camera.lookAt(scene.position);
+
+    // drift each node around its home position, like a slowly breathing graph
+    for (let i = 0; i < allNodes.length; i++) {
+      const n = allNodes[i];
+      n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * n.driftAmp * 0.35;
+      n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed * 0.8 + n.phase) * n.driftAmp * 0.35;
+      n.mesh.position.z = n.basePos.z + Math.sin(t * n.speed * 0.6 + n.phase) * n.driftAmp * 0.25;
+
+      // subtle pulsing "activation" glow, like traversal visiting a node
+      const pulse = 0.75 + Math.sin(t * n.speed * 1.4 + n.phase) * 0.25;
+      n.mesh.material.opacity = pulse;
+    }
+
+    // update edges to follow their connected nodes, with a traveling-brightness pulse
+    for (let i = 0; i < allEdges.length; i++) {
+      const e = allEdges[i];
+      const posAttr = e.line.geometry.attributes.position;
+      posAttr.setXYZ(0, e.a.mesh.position.x, e.a.mesh.position.y, e.a.mesh.position.z);
+      posAttr.setXYZ(1, e.b.mesh.position.x, e.b.mesh.position.y, e.b.mesh.position.z);
+      posAttr.needsUpdate = true;
+
+      const pulse = 0.16 + (Math.sin(t * e.speed + e.phase) * 0.5 + 0.5) * 0.28;
+      e.material.opacity = pulse;
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // pause the loop when the tab is hidden to save battery/CPU
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      cancelAnimationFrame(rafId);
+    } else {
+      animate();
+    }
+  });
+})();
 </script>
 </body>
 </html>
