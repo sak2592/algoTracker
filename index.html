@@ -784,7 +784,13 @@
         </div>
         <div>
           <label class="text-xs font-medium text-mute mb-1 block">Reference Link</label>
-          <input id="f-link" type="url" placeholder="e.g. https://leetcode.com/problems/two-sum/ or a design doc/article URL" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+          <div class="flex gap-2">
+            <input id="f-link" type="url" placeholder="e.g. https://leetcode.com/problems/two-sum/ or a design doc/article URL" class="flex-1 min-w-0 bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+            <button type="button" id="f-link-fetch-btn" title="Auto-fill title/difficulty/category from this link" class="shrink-0 bg-surface2 border border-line hover:border-line2 rounded-lg px-3 py-2 text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="wand-sparkles" class="w-4 h-4"></i><span class="hidden sm:inline">Auto-fill</span>
+            </button>
+          </div>
+          <p id="f-link-status" class="text-[11px] text-mute mt-1 min-h-[14px]"></p>
         </div>
         <div>
           <div class="flex items-center justify-between mb-1">
@@ -911,13 +917,23 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
 
   <!-- ===================== TAB: AI SUGGESTIONS ===================== -->
   <section id="tab-ai" class="hidden space-y-4">
-    <div class="bg-surface2 border border-line rounded-xl p-4 flex items-start gap-3">
+    <div class="bg-surface2 border border-line rounded-xl p-4 flex items-start gap-3 flex-wrap">
       <i data-lucide="sparkles" class="w-6 h-6 text-brand-2 shrink-0 mt-0.5"></i>
-      <div>
+      <div class="min-w-[200px]">
         <p class="text-sm font-medium">Today's Revision Set</p>
-        <p class="text-xs text-mute mt-0.5">Auto-picked from your own saved problems — <span class="font-num">1 Hard + 2 Medium + 1 Easy</span> DSA, prioritized by how overdue they are, plus <span class="font-num">1 LLD/HLD</span> design question. Nothing is invented — every pick links back to a problem you already logged.</p>
+        <p class="text-xs text-mute mt-0.5">Auto-picked from your own saved problems, weighted by difficulty mix and how overdue each one is, plus a design (LLD/HLD) pick worked in. Nothing is invented — every pick links back to a problem you already logged.</p>
       </div>
       <div class="flex-1"></div>
+      <label class="shrink-0 flex items-center gap-1.5 text-xs text-mute">
+        Picks/day
+        <select id="ai-pick-count" class="bg-surface border border-line hover:border-line2 rounded-lg px-2 py-1.5 text-xs font-medium transition">
+          <option value="2">2</option>
+          <option value="4">4</option>
+          <option value="6">6</option>
+          <option value="8">8</option>
+          <option value="10">10</option>
+        </select>
+      </label>
       <button id="ai-refresh-btn" type="button" class="shrink-0 bg-surface border border-line hover:border-line2 rounded-lg px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
         <i data-lucide="refresh-cw" class="w-4 h-4"></i> Re-pick
       </button>
@@ -1154,6 +1170,26 @@ function saveAiToday(state) {
   localStorage.setItem(AI_TODAY_KEY, JSON.stringify(state));
 }
 
+// How many problems the AI Suggestions tab picks per day. User-choosable
+// (see the select in the tab header) and persisted per-user, so "increase
+// it to 4 later" is just a dropdown change, not a code change.
+const AI_PICK_COUNT_BASE_KEY = 'dsa_notebook_ai_pick_count_v1';
+function aiPickCountKeyFor(user) {
+  const ns = user && (user.sub || user.email) ? (user.sub || user.email) : 'guest';
+  return `${AI_PICK_COUNT_BASE_KEY}::${ns}`;
+}
+let AI_PICK_COUNT_KEY = aiPickCountKeyFor(getCurrentUser());
+const AI_PICK_COUNT_OPTIONS = [2, 4, 6, 8, 10];
+const AI_PICK_COUNT_DEFAULT = 2;
+function loadAiPickCount() {
+  const raw = Number(localStorage.getItem(AI_PICK_COUNT_KEY));
+  return AI_PICK_COUNT_OPTIONS.includes(raw) ? raw : AI_PICK_COUNT_DEFAULT;
+}
+function saveAiPickCount(n) {
+  localStorage.setItem(AI_PICK_COUNT_KEY, String(n));
+}
+let aiPickCount = loadAiPickCount();
+
 /* =========================================================
    ADAPTIVE INTERVAL LADDER
    Every problem tracks an `intervalIndex` into this ladder.
@@ -1370,6 +1406,7 @@ function openAddModal() {
     setTrackUI(currentTrack === 'All' ? 'DSA' : currentTrack);
   }
   document.getElementById('add-modal').classList.remove('hidden');
+  resetLinkAutofillState();
   safeCreateIcons();
 }
 function closeAddModal() {
@@ -1377,12 +1414,143 @@ function closeAddModal() {
   exitEditMode();
   form.reset();
   setTrackUI('DSA');
+  resetLinkAutofillState();
 }
 document.getElementById('add-new-btn').addEventListener('click', openAddModal);
 document.getElementById('add-modal-close').addEventListener('click', closeAddModal);
 document.getElementById('add-modal').addEventListener('click', (e) => {
   if (e.target === document.getElementById('add-modal')) closeAddModal();
 });
+
+/* =========================================================
+   LINK AUTO-FILL (LeetCode / GFG / Scaler etc.)
+   ---------------------------------------------------------
+   There's no server here, and most of these sites don't send
+   CORS headers, so we can't fetch their pages directly from
+   the browser. Two things make this work anyway:
+
+   1. For ANY link, we can always derive a readable title from
+      the URL's slug (e.g. /problems/two-sum/ -> "Two Sum")
+      with zero network calls — that part is instant & offline.
+
+   2. For LeetCode specifically, we call a free, community-run,
+      CORS-enabled mirror of LeetCode's question API
+      (alfa-leetcode-api.onrender.com, open-source on GitHub)
+      to also pull the exact title, difficulty and topic tags.
+      It's a third-party service on a free tier, so it can be
+      slow to wake up, rate-limited, or occasionally down —
+      this always degrades gracefully to the slug-based guess.
+
+   GFG and Scaler don't have an equivalent public API, so those
+   only get the slug-based title guess; difficulty/category are
+   left for manual entry.
+========================================================= */
+let difficultyTouchedByUser = false;
+let lastAutofillUrl = '';
+
+function resetLinkAutofillState() {
+  difficultyTouchedByUser = false;
+  lastAutofillUrl = '';
+  const statusEl = document.getElementById('f-link-status');
+  if (statusEl) { statusEl.textContent = ''; statusEl.className = 'text-[11px] text-mute mt-1 min-h-[14px]'; }
+}
+document.getElementById('f-difficulty').addEventListener('input', () => { difficultyTouchedByUser = true; });
+
+function slugToTitleGuess(slug) {
+  return slug
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+// Figures out which platform a URL belongs to and pulls the slug
+// (last meaningful path segment) out of it.
+function detectLinkPlatform(rawUrl) {
+  let u;
+  try { u = new URL(rawUrl); } catch (e) { return null; }
+  const host = u.hostname.replace(/^www\./, '').toLowerCase();
+  const parts = u.pathname.split('/').filter(Boolean);
+  if (!parts.length) return null;
+
+  if (host.includes('leetcode.com')) {
+    const idx = parts.indexOf('problems');
+    const slug = idx !== -1 && parts[idx + 1] ? parts[idx + 1] : parts[parts.length - 1];
+    return { platform: 'leetcode', slug };
+  }
+  if (host.includes('geeksforgeeks.org')) {
+    return { platform: 'gfg', slug: parts[parts.length - 1] };
+  }
+  if (host.includes('scaler.com') || host.includes('interviewbit.com')) {
+    return { platform: 'scaler', slug: parts[parts.length - 1] };
+  }
+  return { platform: 'other', slug: parts[parts.length - 1] };
+}
+
+function setLinkStatus(msg, tone = 'mute') {
+  const statusEl = document.getElementById('f-link-status');
+  if (!statusEl) return;
+  const toneClass = tone === 'good' ? 'text-easy' : tone === 'bad' ? 'text-hard' : 'text-mute';
+  statusEl.textContent = msg;
+  statusEl.className = `text-[11px] mt-1 min-h-[14px] ${toneClass}`;
+}
+
+async function autofillFromLink(force = false) {
+  const linkInput = document.getElementById('f-link');
+  const titleField = document.getElementById('f-title');
+  const categoryField = document.getElementById('f-category');
+  const difficultyField = document.getElementById('f-difficulty');
+  const url = linkInput.value.trim();
+
+  if (!url) { setLinkStatus(''); return; }
+  if (!force && url === lastAutofillUrl) return; // already handled this exact URL
+  lastAutofillUrl = url;
+
+  const parsed = detectLinkPlatform(url);
+  if (!parsed || !parsed.slug) { setLinkStatus(''); return; }
+
+  const originalTitle = titleField.value.trim();
+  const originalCategory = categoryField.value.trim();
+  const guessedTitle = slugToTitleGuess(decodeURIComponent(parsed.slug));
+  if (!originalTitle && guessedTitle) titleField.value = guessedTitle;
+
+  if (parsed.platform !== 'leetcode') {
+    if (parsed.platform === 'other') { setLinkStatus(''); return; }
+    setLinkStatus("Title guessed from the URL — no public API for this site, so double-check difficulty/category.", 'mute');
+    return;
+  }
+
+  setLinkStatus('Fetching problem details from LeetCode…', 'mute');
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const res = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${encodeURIComponent(parsed.slug)}`, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data || data.error) throw new Error('Not found');
+
+    // Only overwrite title/category if the field was empty, or still holds
+    // exactly the slug-guess we just placed there a moment ago — never
+    // clobber something the person actually typed themselves.
+    if (data.questionTitle && (!originalTitle || titleField.value === guessedTitle)) {
+      titleField.value = data.questionTitle;
+    }
+    if (data.difficulty && !difficultyTouchedByUser) {
+      const norm = String(data.difficulty).charAt(0).toUpperCase() + String(data.difficulty).slice(1).toLowerCase();
+      if (['Easy', 'Medium', 'Hard'].includes(norm)) difficultyField.value = norm;
+    }
+    if (!originalCategory && Array.isArray(data.topicTags) && data.topicTags.length) {
+      categoryField.value = data.topicTags.slice(0, 3).map(t => t.name || t).join(', ');
+    }
+    setLinkStatus('Auto-filled from LeetCode ✓', 'good');
+  } catch (err) {
+    setLinkStatus("Couldn't reach LeetCode's API right now (it may be waking up or rate-limited) — title guessed from the URL, please check difficulty/category yourself.", 'bad');
+  }
+}
+
+document.getElementById('f-link-fetch-btn').addEventListener('click', () => autofillFromLink(true));
+document.getElementById('f-link').addEventListener('blur', () => autofillFromLink(false));
 
 /* =========================================================
    TOASTS
@@ -1480,7 +1648,35 @@ function rotatePool(pool, rotation) {
   return pool.slice(r).concat(pool.slice(0, r));
 }
 let aiRotation = 0;
-function pickTodaySet(rotation = 0) {
+// Splits `n` slots across difficulty buckets using the same 1:2:1
+// (Hard:Medium:Easy) weighting the original fixed 1+2+1 split used,
+// generalized to any total via largest-remainder rounding. At n=4 this
+// reproduces the original split exactly (1 Hard, 2 Medium, 1 Easy).
+function splitDsaSlots(n) {
+  const weights = { Hard: 1, Medium: 2, Easy: 1 };
+  const totalWeight = 4;
+  const raw = {}; const base = {};
+  let used = 0;
+  for (const k of Object.keys(weights)) {
+    raw[k] = (n * weights[k]) / totalWeight;
+    base[k] = Math.floor(raw[k]);
+    used += base[k];
+  }
+  let remainder = n - used;
+  const order = Object.keys(weights).sort((a, b) => (raw[b] - base[b]) - (raw[a] - base[a]));
+  for (let i = 0; i < order.length && remainder > 0; i++, remainder--) {
+    base[order[i]]++;
+  }
+  return base;
+}
+
+function pickTodaySet(rotation = 0, totalCount = AI_PICK_COUNT_DEFAULT) {
+  const total = Math.max(1, totalCount);
+  // Reserve roughly 1-in-5 slots for a design (LLD/HLD) pick, same ratio as
+  // the original fixed 4 DSA + 1 design set, minimum 1 once there's room.
+  const designSlots = total >= 2 ? Math.max(1, Math.floor(total / 5)) : 0;
+  const dsaSlots = total - designSlots;
+
   const dsa = problems.filter(p => (p.track || 'DSA') === 'DSA');
   const byDiff = diff => rotatePool(dsa.filter(p => p.difficulty === diff).sort(urgencySort), rotation);
 
@@ -1495,19 +1691,20 @@ function pickTodaySet(rotation = 0) {
     }
     return taken;
   }
-  takeFrom(byDiff('Hard'), 1);
-  takeFrom(byDiff('Medium'), 2);
-  takeFrom(byDiff('Easy'), 1);
+  const slots = splitDsaSlots(dsaSlots);
+  takeFrom(byDiff('Hard'), slots.Hard);
+  takeFrom(byDiff('Medium'), slots.Medium);
+  takeFrom(byDiff('Easy'), slots.Easy);
   // backfill from remaining DSA problems (any difficulty) if a bucket was short
-  if (picks.length < 4) {
+  if (picks.length < dsaSlots) {
     const rest = rotatePool(dsa.filter(p => !used.has(p.id)).sort(urgencySort), rotation);
-    takeFrom(rest, 4 - picks.length);
+    takeFrom(rest, dsaSlots - picks.length);
   }
 
   const design = rotatePool(problems.filter(p => p.track === 'LLD' || p.track === 'HLD').sort(urgencySort), rotation);
-  const designPick = design[0] || null;
+  const designPicks = design.slice(0, designSlots);
 
-  return { dsaPicks: picks, designPick };
+  return { dsaPicks: picks, designPicks };
 }
 
 function overdueLabel(p) {
@@ -1576,12 +1773,13 @@ function ensureAiToday(forceNew = false) {
   const today = todayISO();
   let state = loadAiToday();
   const stale = !state || state.date !== today;
+  const countChanged = state && state.count !== aiPickCount;
   const previouslyEmptyPool = state && state.total === 0; // nothing existed to pick from last time
-  if (forceNew || stale || previouslyEmptyPool) {
-    const { dsaPicks, designPick } = pickTodaySet(aiRotation);
+  if (forceNew || stale || countChanged || previouslyEmptyPool) {
+    const { dsaPicks, designPicks } = pickTodaySet(aiRotation, aiPickCount);
     const ids = dsaPicks.map(p => p.id);
-    if (designPick) ids.push(designPick.id);
-    state = { date: today, ids, total: ids.length };
+    designPicks.forEach(p => ids.push(p.id));
+    state = { date: today, ids, total: ids.length, count: aiPickCount };
     saveAiToday(state);
   }
   return state;
@@ -1601,6 +1799,8 @@ function updateAiBadge() {
 }
 
 function renderAiPicks() {
+  const countSel = document.getElementById('ai-pick-count');
+  if (countSel && countSel.value !== String(aiPickCount)) countSel.value = String(aiPickCount);
   const state = ensureAiToday();
   const grid = document.getElementById('ai-picks-grid');
   const empty = document.getElementById('ai-empty');
@@ -1649,6 +1849,15 @@ document.getElementById('ai-refresh-btn').addEventListener('click', () => {
   ensureAiToday(true); // manual re-pick: overwrite today's persisted set
   renderAiPicks();
   toast('Suggestions re-picked', 'refresh-cw', 'text-brand-2');
+});
+
+document.getElementById('ai-pick-count').addEventListener('change', (e) => {
+  const n = Number(e.target.value);
+  if (!AI_PICK_COUNT_OPTIONS.includes(n)) return;
+  aiPickCount = n;
+  saveAiPickCount(n);
+  renderAiPicks(); // ensureAiToday() inside will notice count changed and regenerate
+  toast(`Now picking ${n} problems/day`, 'sparkles', 'text-brand-2');
 });
 
 /* =========================================================
@@ -3179,6 +3388,8 @@ function loginAs(user) {
   REVLOG_STORAGE_KEY = revLogKeyFor(user);
   DELETED_IDS_KEY = deletedIdsKeyFor(user);
   AI_TODAY_KEY = aiTodayKeyFor(user);
+  AI_PICK_COUNT_KEY = aiPickCountKeyFor(user);
+  aiPickCount = loadAiPickCount();
   problems = loadProblems();
   problems.forEach(migrateProblem);
   revisionLog = loadRevisionLog();
@@ -3267,6 +3478,8 @@ function initAuth() {
     REVLOG_STORAGE_KEY = revLogKeyFor(existing);
     DELETED_IDS_KEY = deletedIdsKeyFor(existing);
     AI_TODAY_KEY = aiTodayKeyFor(existing);
+    AI_PICK_COUNT_KEY = aiPickCountKeyFor(existing);
+    aiPickCount = loadAiPickCount();
     problems = loadProblems();
     problems.forEach(migrateProblem);
     revisionLog = loadRevisionLog();
