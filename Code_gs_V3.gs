@@ -82,7 +82,34 @@ function trackSheetName(track) {
 
 // ---- Web app entry points ------------------------------------
 function doGet(e) {
-  return jsonResponse({ ok: true, message: 'Algo Tracker sync API is running. This endpoint expects POST requests.' });
+  try {
+    const params = (e && e.parameter) || {};
+    const action = params.action || '';
+
+    if (SHARED_SECRET && (params.secret || '') !== SHARED_SECRET) {
+      return jsonResponse({ status: 'error', message: 'Unauthorized: shared secret does not match.' });
+    }
+
+    if (action === 'ping') {
+      return jsonResponse({ status: 'ok', message: 'pong' });
+    }
+
+    if (action === 'load') {
+      return jsonResponse({
+        status: 'ok',
+        problems: readAllProblems().filter(function (p) { return !p.deletedAt; }),
+        revisionLog: readRevisionLog(),
+        lastModified: getStoredLastModified(),
+      });
+    }
+
+    return jsonResponse({
+      status: 'ok',
+      message: 'Algo Tracker sync API is running. Use ?action=ping or ?action=load for GET, or POST with action:"save" to write data.',
+    });
+  } catch (err) {
+    return jsonResponse({ status: 'error', message: String(err && err.message ? err.message : err) });
+  }
 }
 
 function doPost(e) {
@@ -101,6 +128,17 @@ function doPost(e) {
     }
 
     const action = body.action || 'sync';
+
+    if (action === 'save') {
+      const merged = mergeSync(body.problems || [], body.revisionLog || [], body.deletedIds || []);
+      return jsonResponse({
+        status: 'ok',
+        problems: merged.problems,
+        revisionLog: merged.revisionLog,
+        deletedIds: merged.deletedIds,
+        lastModified: merged.lastModified,
+      });
+    }
 
     if (action === 'pull') {
       return jsonResponse({
@@ -224,7 +262,20 @@ function mergeSync(incomingProblems, incomingRevisionLog, deletedIds) {
     problems: Object.keys(existing).map(function (id) { return existing[id]; }),
     revisionLog: readRevisionLog(),
     deletedIds: Array.from(tombstones),
+    lastModified: touchLastModified(),
   };
+}
+
+function getStoredLastModified() {
+  return Number(PropertiesService.getScriptProperties().getProperty('LAST_MODIFIED')) || 0;
+}
+
+// Call whenever the sheet is written to, so GET ?action=load and the
+// pre-save staleness check always see an up-to-date value.
+function touchLastModified() {
+  const ts = Date.now();
+  PropertiesService.getScriptProperties().setProperty('LAST_MODIFIED', String(ts));
+  return ts;
 }
 
 function normalizeProblem(p) {
