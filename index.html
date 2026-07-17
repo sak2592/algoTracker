@@ -190,6 +190,12 @@
   .date-pill::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent); transform: skewX(-18deg); pointer-events: none; animation: alertShimmer 5.5s ease-in-out infinite; }
   .date-pill i, .date-pill svg { color: #a5b4fc; position: relative; z-index: 1; width: 14px; height: 14px; }
   .date-pill span { position: relative; z-index: 1; }
+  /* Match the AI Suggestions header button to the same pill shape as the
+     date button (same border-radius/padding), instead of the squarer
+     10px-radius default every other .app-btn uses. Scoped to this one
+     button by id so the "Add Problems" CTA (also .app-btn) is unaffected. */
+  #ai-suggest-btn.app-btn { border-radius: 999px; padding: 8px 14px; }
+  #ai-suggest-btn.app-btn-ghost::before { border-radius: 999px; }
   @media (max-width: 860px) { .date-pill span { display: none; } .date-pill { padding: 8px; } }
   .sync-status-pill {
     display: inline-flex;
@@ -247,16 +253,16 @@
   .app-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
   .app-btn-cta {
     position: relative;
-    padding: 11px 18px;
-    font-size: 0.88rem;
-    border-radius: 11px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 10px;
     background: linear-gradient(135deg, #ec4899, #6366f1);
     font-weight: 600;
     box-shadow: 0 8px 24px -8px rgba(236,72,153,0.45), 0 0 0 0 rgba(236,72,153,0.5);
     animation: ctaGlowPulse 2.6s ease-in-out infinite;
     z-index: 0;
   }
-  .app-btn-cta svg { width: 18px; height: 18px; }
+  .app-btn-cta svg { width: 15px; height: 15px; }
   .app-btn-cta::before {
     content: '';
     position: absolute;
@@ -443,7 +449,7 @@
         <i data-lucide="cloud"></i>
       </button>
 
-      <button data-tab="ai" title="AI Suggestions" class="app-btn app-btn-ghost tab-btn" style="position:relative;">
+      <button id="ai-suggest-btn" data-tab="ai" title="AI Suggestions" class="app-btn app-btn-ghost tab-btn" style="position:relative;">
         <i data-lucide="sparkles"></i><span class="app-btn-full">AI Suggestions</span><span class="app-btn-short">AI</span>
         <span id="ai-badge" class="app-header-badge app-header-badge-cyan hidden">0</span>
       </button>
@@ -3186,11 +3192,11 @@ function renderQueue() {
         ${p.notes ? `<p class="text-xs text-mute mt-1.5 line-clamp-2">${escapeHtml(p.notes)}</p>` : ''}
       </div>
       <div class="flex flex-col gap-1.5 shrink-0">
-        <button data-revise="${p.id}" class="btn-nailed font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 justify-center">
-          <i data-lucide="check-circle-2" class="w-6 h-6"></i> Nailed It <span class="text-[10px] opacity-70 font-num">→ ${LADDER[Math.min(p.intervalIndex+1, LADDER.length-1)]}d</span>
+        <button data-revise="${p.id}" class="btn-nailed text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 justify-center">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Nailed It <span class="text-[9px] opacity-70 font-num">→ ${LADDER[Math.min(p.intervalIndex+1, LADDER.length-1)]}d</span>
         </button>
-        <button data-struggle="${p.id}" class="btn-struggled text-xs font-medium px-4 py-1.5 rounded-lg flex items-center gap-1.5 justify-center">
-          <i data-lucide="rotate-ccw" class="w-5 h-5"></i> Struggled <span class="text-[10px] opacity-70 font-num">→ reset to 1d</span>
+        <button data-struggle="${p.id}" class="btn-struggled text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 justify-center">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Struggled <span class="text-[9px] opacity-70 font-num">→ reset to 1d</span>
         </button>
       </div>
     `;
