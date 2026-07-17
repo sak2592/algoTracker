@@ -4414,29 +4414,52 @@ async function saveDataToSheets() {
   setSyncStatusDot('busy');
   setSyncStatusText('Syncing to Sheets…');
   try {
-    // Staleness guard: refuse to overwrite the Sheet if it has moved on
-    // since this tab last actually knew its state (e.g. a sync from
-    // another device/tab landed in between). Without this, a tab left
-    // open for a while would silently blow away newer data on its next
-    // save. The fix is to reload, not to force through.
-    try {
-      const check = await fetch(syncConfig.url + '?action=load' + (syncConfig.secret ? '&secret=' + encodeURIComponent(syncConfig.secret) : ''));
-      const checkData = await check.json();
-      if (checkData && checkData.status === 'ok' && checkData.lastModified && checkData.lastModified > lastSyncedRemoteTime) {
-        setSyncStatusDot('error');
-        setSyncStatusText('Newer data on Sheets — reload this page before saving again');
-        toast('Google Sheets has newer data than this tab knows about. Reload the page to pick it up before syncing again.', 'alert-triangle', 'text-hard');
-        return;
-      }
-    } catch (e) {
-      // Can't reach the staleness check — fall through and save anyway,
-      // rather than blocking every edit whenever the network hiccups.
-    }
-
+    // No client-side staleness pre-check here on purpose: Code_dsa_V4.gs's
+    // mergeSync() already does real per-record conflict resolution server
+    // side (last-write-wins on each problem's updatedAt, plus tombstones
+    // for deletes), so a stale local copy can never clobber newer Sheet
+    // data. A pre-flight "is the Sheet newer than what I last saw" check
+    // used to sit here and hard-abort the save when it tripped — which
+    // could only be cleared by a full page reload, even though the actual
+    // save the server would have done was perfectly safe. Removed in favor
+    // of just trusting the server merge and adopting what it returns below.
     const lastModified = Date.now();
-    const data = await apiCall('save', { problems, revisionLog, goals, lastModified });
+    // deletedIds must be included or the backend's mergeSync() never learns
+    // which rows to tombstone — deletions would silently never reach the
+    // Sheet (and could even reappear locally on the next load).
+    const sentDeletedIds = pendingDeletedIds.slice();
+    const data = await apiCall('save', { problems, revisionLog, goals, lastModified, deletedIds: sentDeletedIds });
     if (data.status !== 'ok') throw new Error(data.message || 'Save failed');
+
+    // Adopt the server's merged truth (it may include edits from another
+    // device/tab, or Sheet-side edits) instead of blindly trusting that
+    // what we just sent is now canonical. This is what makes sync
+    // self-healing without a manual reload.
+    if (Array.isArray(data.problems)) {
+      problems = data.problems.map(migrateProblem);
+      saveProblemsRaw();
+    }
+    if (Array.isArray(data.revisionLog)) {
+      revisionLog = data.revisionLog;
+      saveRevisionLogRaw();
+    }
+    if (data.goals) {
+      goals = {
+        weekly: { DSA: 0, LLD: 0, HLD: 0, ...(data.goals.weekly || {}) },
+        monthly: { DSA: 0, LLD: 0, HLD: 0, ...(data.goals.monthly || {}) },
+        notify: !!data.goals.notify,
+      };
+      saveGoals();
+    }
+    renderAll();
+
     lastSyncedRemoteTime = data.lastModified || lastModified;
+
+    // Server just confirmed it tombstoned these — safe to drop them from the
+    // local pending list (only the ones snapshotted above; a delete added
+    // mid-request stays pending for the next sync round).
+    pendingDeletedIds = pendingDeletedIds.filter(id => !sentDeletedIds.includes(id));
+    savePendingDeletes();
     setSyncStatusDot('ok');
     setSyncStatusText(`Last synced ${new Date().toLocaleTimeString()}`);
   } catch (err) {
