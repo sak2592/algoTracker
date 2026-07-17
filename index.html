@@ -91,7 +91,7 @@
   [class*="bg-surface2/"] { background: transparent !important; }
   [class*="bg-surface3/"] { background: transparent !important; }
 
-  .stat-card { position: relative; overflow: hidden; background: transparent; border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .stat-card { position: relative; overflow: hidden; background: transparent; border-color: color-mix(in srgb, var(--sc-accent, #6366f1) 55%, #151b2b) !important; border-width: 1px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--sc-accent, #6366f1); opacity: .9; }
   .stat-card .stat-icon {
     background: var(--sc-icon-bg, rgba(99,102,241,0.14));
@@ -135,7 +135,7 @@
   .track-view-card .track-accent { opacity: .9; background: var(--tv-accent, #6366f1); }
   .track-view-card .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.14)); color: var(--tv-accent, #6366f1); border: 1px solid rgba(255,255,255,0.06); }
   .track-view-card .track-count { color: var(--tv-accent, #6366f1); }
-  .track-view-card { border-color: var(--tv-border, #334155); }
+  .track-view-card { border-color: var(--tv-border, #334155) !important; border-width: 1px !important; }
   .track-view-card.active { background: transparent; border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
   .track-view-card.track-view-glow { animation: trackGlow .5s ease; }
   @keyframes trackGlow {
@@ -146,11 +146,11 @@
   .track-view-card.active .track-accent { opacity: 1; background: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.16)); color: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-count { color: var(--tv-accent, #6366f1); }
-  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: transparent; --tv-border: #475569; }
-  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: transparent; --tv-border: rgba(59,130,246,0.55); }
-  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: transparent; --tv-border: rgba(34,211,238,0.55); }
-  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: transparent; --tv-border: rgba(251,143,206,0.55); }
-  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: transparent; --tv-border: rgba(250,204,21,0.55); }
+  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: transparent; --tv-border: color-mix(in srgb, var(--tv-accent) 55%, #151b2b); }
+  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: transparent; --tv-border: color-mix(in srgb, var(--tv-accent) 55%, #151b2b); }
+  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: transparent; --tv-border: color-mix(in srgb, var(--tv-accent) 55%, #151b2b); }
+  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: transparent; --tv-border: color-mix(in srgb, var(--tv-accent) 55%, #151b2b); }
+  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: transparent; --tv-border: color-mix(in srgb, var(--tv-accent) 55%, #151b2b); }
   .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"], .track-view-card.active[data-tab="queue"] { background: transparent; }
   .tab-btn { border-color: transparent; color: #94a3b8; }
   .tab-btn[data-tab="calendar"] { color: #f59e0b; }
@@ -355,6 +355,8 @@
   .app-user-dropdown-item svg { width: 18px; height: 18px; }
   .app-user-dropdown-item:hover { background: #1e293b; }
   .app-user-dropdown-item-danger { color: #ef4444; }
+  .bg3d-theme-item.active { color: #06b6d4; }
+  .bg3d-theme-item.active svg { color: #06b6d4; }
 
   /* =====================================================================
      "Nodal" card treatment — ported from pfm_v9.html's .goal-nodal design
@@ -473,7 +475,25 @@
             <p id="user-menu-name" class="app-user-dropdown-name">Guest</p>
             <p id="user-menu-email" class="app-user-dropdown-email"></p>
           </div>
-          <button id="logout-btn" class="app-user-dropdown-item app-user-dropdown-item-danger">
+          <div class="app-user-dropdown-header" style="border-top:1px solid #1e293b;">
+            <p class="app-user-dropdown-name" style="color:#94a3b8; font-weight:400; font-size:0.68rem; text-transform:uppercase; letter-spacing:.04em;">Background theme</p>
+          </div>
+          <button type="button" data-bg3d-theme="neural" class="app-user-dropdown-item bg3d-theme-item">
+            <i data-lucide="git-branch"></i> Neural Graph
+          </button>
+          <button type="button" data-bg3d-theme="starfield" class="app-user-dropdown-item bg3d-theme-item">
+            <i data-lucide="sparkle"></i> Universe
+          </button>
+          <button type="button" data-bg3d-theme="constellation" class="app-user-dropdown-item bg3d-theme-item">
+            <i data-lucide="share-2"></i> Constellation
+          </button>
+          <button type="button" data-bg3d-theme="wavegrid" class="app-user-dropdown-item bg3d-theme-item">
+            <i data-lucide="grid-3x3"></i> Wave Grid
+          </button>
+          <button type="button" data-bg3d-theme="off" class="app-user-dropdown-item bg3d-theme-item">
+            <i data-lucide="eye-off"></i> Off
+          </button>
+          <button id="logout-btn" class="app-user-dropdown-item app-user-dropdown-item-danger" style="border-top:1px solid #1e293b;">
             <i data-lucide="log-out"></i> Sign out
           </button>
         </div>
@@ -4258,6 +4278,16 @@ window.addEventListener('resize', () => {
   document.getElementById('user-menu-dropdown').classList.add('hidden');
 });
 
+/* ---- 3D background theme options (now live inside the user/guest dropdown) ---- */
+document.querySelectorAll('.bg3d-theme-item').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const theme = btn.getAttribute('data-bg3d-theme');
+    if (window.setBg3DTheme) window.setBg3DTheme(theme);
+    document.getElementById('user-menu-dropdown').classList.add('hidden');
+  });
+});
+
 function initAuth() {
   const existing = getCurrentUser();
   const clientIdEl = document.getElementById('g_id_onload');
@@ -4697,87 +4727,310 @@ updateHeaderDatePill();
     new THREE.Color('#34d399'), // mint green
   ];
 
-  // ---------- Build several loose "graph clusters" (like small trees/graphs) ----------
-  const CLUSTER_COUNT = 7;
-  const NODES_PER_CLUSTER_MIN = 6;
-  const NODES_PER_CLUSTER_MAX = 11;
-  const MAX_EDGE_DIST = 3.6; // nodes closer than this within a cluster get an edge
+  function disposeObject3D(obj) {
+    obj.traverse((child) => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+        else child.material.dispose();
+      }
+    });
+  }
 
-  const nodeGroup = new THREE.Group();
-  const edgeGroup = new THREE.Group();
-  scene.add(edgeGroup);
-  scene.add(nodeGroup);
+  /* ===================== THEME: Neural Graph =====================
+     Loose clusters of nodes ("graph vertices") linked by edges that
+     brighten/dim as if data were traversing them — the app's original
+     DSA/graph-and-tree motif. */
+  function buildNeuralGraph() {
+    const CLUSTER_COUNT = 7;
+    const NODES_PER_CLUSTER_MIN = 6;
+    const NODES_PER_CLUSTER_MAX = 11;
+    const MAX_EDGE_DIST = 3.6;
 
-  const allNodes = []; // { mesh, basePos, phase, speed, cluster }
-  const allEdges = []; // { line, a, b, material, phase, speed }
+    const root = new THREE.Group();
+    const nodeGroup = new THREE.Group();
+    const edgeGroup = new THREE.Group();
+    root.add(edgeGroup, nodeGroup);
 
-  const nodeGeo = new THREE.SphereGeometry(1, 10, 10);
+    const allNodes = [];
+    const allEdges = [];
+    const nodeGeo = new THREE.SphereGeometry(1, 10, 10);
 
-  for (let c = 0; c < CLUSTER_COUNT; c++) {
-    // pick a random "home" position for this cluster, spread wide in view volume
-    const home = new THREE.Vector3(
-      (Math.random() - 0.5) * 30,
-      (Math.random() - 0.5) * 20,
-      (Math.random() - 0.5) * 18
-    );
-    const clusterColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-    const nodeCount = NODES_PER_CLUSTER_MIN + Math.floor(Math.random() * (NODES_PER_CLUSTER_MAX - NODES_PER_CLUSTER_MIN));
-
-    const clusterNodes = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const offset = new THREE.Vector3(
-        (Math.random() - 0.5) * 6.5,
-        (Math.random() - 0.5) * 6.5,
-        (Math.random() - 0.5) * 5
+    for (let c = 0; c < CLUSTER_COUNT; c++) {
+      const home = new THREE.Vector3(
+        (Math.random() - 0.5) * 30,
+        (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * 18
       );
-      const pos = home.clone().add(offset);
+      const clusterColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const nodeCount = NODES_PER_CLUSTER_MIN + Math.floor(Math.random() * (NODES_PER_CLUSTER_MAX - NODES_PER_CLUSTER_MIN));
 
-      const size = Math.random() * 0.075 + 0.05;
-      const mat = new THREE.MeshBasicMaterial({
-        color: clusterColor,
-        transparent: true,
-        opacity: 0.95,
-      });
-      const mesh = new THREE.Mesh(nodeGeo, mat);
-      mesh.scale.setScalar(size);
-      mesh.position.copy(pos);
-      nodeGroup.add(mesh);
+      const clusterNodes = [];
+      for (let i = 0; i < nodeCount; i++) {
+        const offset = new THREE.Vector3(
+          (Math.random() - 0.5) * 6.5,
+          (Math.random() - 0.5) * 6.5,
+          (Math.random() - 0.5) * 5
+        );
+        const pos = home.clone().add(offset);
+        const size = Math.random() * 0.075 + 0.05;
+        const mat = new THREE.MeshBasicMaterial({ color: clusterColor, transparent: true, opacity: 0.95 });
+        const mesh = new THREE.Mesh(nodeGeo, mat);
+        mesh.scale.setScalar(size);
+        mesh.position.copy(pos);
+        nodeGroup.add(mesh);
 
-      const nodeData = {
-        mesh,
-        basePos: pos.clone(),
-        phase: Math.random() * Math.PI * 2,
-        speed: Math.random() * 0.75 + 0.3,
-        driftAmp: Math.random() * 0.55 + 0.25,
-      };
-      allNodes.push(nodeData);
-      clusterNodes.push(nodeData);
-    }
+        const nodeData = { mesh, basePos: pos.clone(), phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.75 + 0.3, driftAmp: Math.random() * 0.55 + 0.25 };
+        allNodes.push(nodeData);
+        clusterNodes.push(nodeData);
+      }
 
-    // connect nearby nodes within the cluster (sparse, tree/graph-like — not fully connected)
-    for (let i = 0; i < clusterNodes.length; i++) {
-      for (let j = i + 1; j < clusterNodes.length; j++) {
-        const dist = clusterNodes[i].basePos.distanceTo(clusterNodes[j].basePos);
-        if (dist < MAX_EDGE_DIST && Math.random() < 0.55) {
-          const geo = new THREE.BufferGeometry().setFromPoints([
-            clusterNodes[i].basePos, clusterNodes[j].basePos
-          ]);
-          const mat = new THREE.LineBasicMaterial({
-            color: clusterColor,
-            transparent: true,
-            opacity: 0.22,
-          });
-          const line = new THREE.Line(geo, mat);
-          edgeGroup.add(line);
-          allEdges.push({
-            line, a: clusterNodes[i], b: clusterNodes[j], material: mat,
-            phase: Math.random() * Math.PI * 2,
-            speed: Math.random() * 1.2 + 0.6,
-          });
+      for (let i = 0; i < clusterNodes.length; i++) {
+        for (let j = i + 1; j < clusterNodes.length; j++) {
+          const dist = clusterNodes[i].basePos.distanceTo(clusterNodes[j].basePos);
+          if (dist < MAX_EDGE_DIST && Math.random() < 0.55) {
+            const geo = new THREE.BufferGeometry().setFromPoints([clusterNodes[i].basePos, clusterNodes[j].basePos]);
+            const mat = new THREE.LineBasicMaterial({ color: clusterColor, transparent: true, opacity: 0.22 });
+            const line = new THREE.Line(geo, mat);
+            edgeGroup.add(line);
+            allEdges.push({ line, a: clusterNodes[i], b: clusterNodes[j], material: mat, phase: Math.random() * Math.PI * 2, speed: Math.random() * 1.2 + 0.6 });
+          }
         }
       }
     }
+
+    return {
+      root,
+      rotSpeed: 1,
+      update(t) {
+        for (let i = 0; i < allNodes.length; i++) {
+          const n = allNodes[i];
+          n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * n.driftAmp * 0.55;
+          n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed * 0.8 + n.phase) * n.driftAmp * 0.55;
+          n.mesh.position.z = n.basePos.z + Math.sin(t * n.speed * 0.6 + n.phase) * n.driftAmp * 0.4;
+          n.mesh.material.opacity = 0.75 + Math.sin(t * n.speed * 1.4 + n.phase) * 0.25;
+        }
+        for (let i = 0; i < allEdges.length; i++) {
+          const e = allEdges[i];
+          const posAttr = e.line.geometry.attributes.position;
+          posAttr.setXYZ(0, e.a.mesh.position.x, e.a.mesh.position.y, e.a.mesh.position.z);
+          posAttr.setXYZ(1, e.b.mesh.position.x, e.b.mesh.position.y, e.b.mesh.position.z);
+          posAttr.needsUpdate = true;
+          e.material.opacity = 0.16 + (Math.sin(t * e.speed + e.phase) * 0.5 + 0.5) * 0.28;
+        }
+      },
+      dispose() { disposeObject3D(root); }
+    };
   }
+
+  /* ===================== THEME: Universe (deep-space starfield) =====================
+     Thousands of stars in layered depth bands plus a few soft nebula-glow
+     sprites, slowly drifting past the camera like flying through space. */
+  function buildUniverse() {
+    const root = new THREE.Group();
+
+    // ---- Star layers (near/mid/far — different counts/sizes/speeds = parallax depth) ----
+    const layers = [];
+    const layerDefs = [
+      { count: 900, spread: 60, size: 0.055, speed: 0.14, opacity: 0.9 },
+      { count: 700, spread: 90, size: 0.04, speed: 0.07, opacity: 0.7 },
+      { count: 500, spread: 130, size: 0.03, speed: 0.03, opacity: 0.5 },
+    ];
+
+    layerDefs.forEach(def => {
+      const positions = new Float32Array(def.count * 3);
+      const colors = new Float32Array(def.count * 3);
+      for (let i = 0; i < def.count; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * def.spread;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * def.spread * 0.65;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * def.spread;
+        const c = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+        colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const mat = new THREE.PointsMaterial({ size: def.size, vertexColors: true, transparent: true, opacity: def.opacity, depthWrite: false });
+      const points = new THREE.Points(geo, mat);
+      root.add(points);
+      layers.push({ points, speed: def.speed, phase: Math.random() * Math.PI * 2, baseOpacity: def.opacity });
+    });
+
+    // ---- A handful of soft nebula glow sprites drifting far in the background ----
+    const nebulae = [];
+    const nebulaCanvas = document.createElement('canvas');
+    nebulaCanvas.width = nebulaCanvas.height = 128;
+    const ctx = nebulaCanvas.getContext('2d');
+    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+    const nebulaTex = new THREE.CanvasTexture(nebulaCanvas);
+
+    const NEBULA_COUNT = 5;
+    for (let i = 0; i < NEBULA_COUNT; i++) {
+      const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+      const mat = new THREE.SpriteMaterial({ map: nebulaTex, color, transparent: true, opacity: 0.14, depthWrite: false });
+      const sprite = new THREE.Sprite(mat);
+      const scale = 14 + Math.random() * 12;
+      sprite.scale.set(scale, scale, 1);
+      sprite.position.set((Math.random() - 0.5) * 70, (Math.random() - 0.5) * 40, -20 - Math.random() * 40);
+      root.add(sprite);
+      nebulae.push({ sprite, phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.15 + 0.05 });
+    }
+
+    return {
+      root,
+      update(t) {
+        layers.forEach((l, idx) => {
+          // slow forward drift, wrap each star field back for an endless-flight feel
+          l.points.position.z = (t * l.speed * 6) % 20;
+          l.points.material.opacity = l.baseOpacity * (0.85 + Math.sin(t * 0.3 + l.phase) * 0.15);
+        });
+        nebulae.forEach(n => {
+          n.sprite.material.opacity = 0.10 + (Math.sin(t * n.speed + n.phase) * 0.5 + 0.5) * 0.10;
+        });
+      },
+      dispose() {
+        disposeObject3D(root);
+        nebulaTex.dispose();
+      }
+    };
+  }
+
+  /* ===================== THEME: Constellation =====================
+     A single spread-out field of nodes (not clustered) joined into a
+     sparse network — reads as a star map / constellation chart rather
+     than DSA graph clusters. One accent hue, slow uniform drift only. */
+  function buildConstellation() {
+    const root = new THREE.Group();
+    const nodeGroup = new THREE.Group();
+    const edgeGroup = new THREE.Group();
+    root.add(edgeGroup, nodeGroup);
+
+    const NODE_COUNT = 55;
+    const MAX_EDGE_DIST = 5.2;
+    const accent = new THREE.Color('#7dd3fc');
+    const nodeGeo = new THREE.SphereGeometry(1, 8, 8);
+    const nodes = [];
+
+    for (let i = 0; i < NODE_COUNT; i++) {
+      const pos = new THREE.Vector3((Math.random() - 0.5) * 42, (Math.random() - 0.5) * 26, (Math.random() - 0.5) * 26);
+      const mat = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.85 });
+      const mesh = new THREE.Mesh(nodeGeo, mat);
+      mesh.scale.setScalar(Math.random() * 0.06 + 0.045);
+      mesh.position.copy(pos);
+      nodeGroup.add(mesh);
+      nodes.push({ mesh, basePos: pos.clone(), phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.3 + 0.15 });
+    }
+
+    const edges = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        if (nodes[i].basePos.distanceTo(nodes[j].basePos) < MAX_EDGE_DIST) {
+          const geo = new THREE.BufferGeometry().setFromPoints([nodes[i].basePos, nodes[j].basePos]);
+          const mat = new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.18 });
+          const line = new THREE.Line(geo, mat);
+          edgeGroup.add(line);
+          edges.push({ line, a: nodes[i], b: nodes[j], material: mat, phase: Math.random() * Math.PI * 2, speed: Math.random() * 0.8 + 0.4 });
+        }
+      }
+    }
+
+    return {
+      root,
+      update(t) {
+        nodes.forEach(n => {
+          n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * 0.3;
+          n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed + n.phase) * 0.3;
+          n.mesh.material.opacity = 0.6 + Math.sin(t * n.speed * 1.2 + n.phase) * 0.25;
+        });
+        edges.forEach(e => {
+          const pa = e.line.geometry.attributes.position;
+          pa.setXYZ(0, e.a.mesh.position.x, e.a.mesh.position.y, e.a.mesh.position.z);
+          pa.setXYZ(1, e.b.mesh.position.x, e.b.mesh.position.y, e.b.mesh.position.z);
+          pa.needsUpdate = true;
+          e.material.opacity = 0.10 + (Math.sin(t * e.speed + e.phase) * 0.5 + 0.5) * 0.14;
+        });
+      },
+      dispose() { disposeObject3D(root); }
+    };
+  }
+
+  /* ===================== THEME: Wave Grid =====================
+     A retro-synthwave horizon: a wireframe plane rippling with a slow
+     sine wave, sitting low in the view like a floor. */
+  function buildWaveGrid() {
+    const root = new THREE.Group();
+    const segs = 40;
+    const size = 60;
+    const geo = new THREE.PlaneGeometry(size, size, segs, segs);
+    geo.rotateX(-Math.PI / 2.4);
+    const basePositions = geo.attributes.position.array.slice();
+    const mat = new THREE.MeshBasicMaterial({ color: '#6366f1', wireframe: true, transparent: true, opacity: 0.28 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = -8;
+    mesh.position.z = -6;
+    root.add(mesh);
+
+    const mat2 = new THREE.MeshBasicMaterial({ color: '#06b6d4', wireframe: true, transparent: true, opacity: 0.16 });
+    const mesh2 = mesh.clone();
+    mesh2.material = mat2;
+    mesh2.position.y = 8;
+    mesh2.rotation.z = Math.PI;
+    root.add(mesh2);
+
+    function ripple(meshRef, basePos, t, dir) {
+      const pos = meshRef.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = basePos[i * 3];
+        const z = basePos[i * 3 + 2];
+        pos.array[i * 3 + 1] = basePos[i * 3 + 1] + Math.sin(x * 0.25 + t * dir) * 0.9 + Math.cos(z * 0.2 + t * 0.6 * dir) * 0.6;
+      }
+      pos.needsUpdate = true;
+      meshRef.geometry.computeVertexNormals();
+    }
+
+    return {
+      root,
+      update(t) {
+        ripple(mesh, basePositions, t, 1);
+        ripple(mesh2, basePositions, t, -1);
+      },
+      dispose() { disposeObject3D(root); }
+    };
+  }
+
+  const THEME_BUILDERS = {
+    neural: buildNeuralGraph,
+    starfield: buildUniverse,
+    constellation: buildConstellation,
+    wavegrid: buildWaveGrid,
+  };
+
+  let currentTheme = null;
+  function setBg3DTheme(name) {
+    if (currentTheme) {
+      scene.remove(currentTheme.root);
+      currentTheme.dispose();
+      currentTheme = null;
+    }
+    canvas.style.display = (name === 'off') ? 'none' : 'block';
+    if (THEME_BUILDERS[name]) {
+      currentTheme = THEME_BUILDERS[name]();
+      scene.add(currentTheme.root);
+    }
+    try { localStorage.setItem('bg3dTheme', name); } catch (e) {}
+    document.querySelectorAll('.bg3d-theme-item').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-bg3d-theme') === name);
+    });
+  }
+  window.setBg3DTheme = setBg3DTheme;
+
+  let savedTheme = 'starfield';
+  try { savedTheme = localStorage.getItem('bg3dTheme') || 'starfield'; } catch (e) {}
+  setBg3DTheme(savedTheme);
 
   // gentle parallax toward the mouse, kept subtle so it stays in the background
   let targetX = 0, targetY = 0;
@@ -4798,36 +5051,14 @@ updateHeaderDatePill();
     rafId = requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
 
-    scene.rotation.y = Math.sin(t * 0.09) * 0.22 + t * 0.045;
-    scene.rotation.x = Math.sin(t * 0.13) * 0.12;
+    scene.rotation.y = Math.sin(t * 0.045) * 0.22 + t * 0.02;
+    scene.rotation.x = Math.sin(t * 0.065) * 0.12;
 
     camera.position.x += (targetX - camera.position.x) * 0.04;
     camera.position.y += (-targetY - camera.position.y) * 0.04;
     camera.lookAt(scene.position);
 
-    // drift each node around its home position, like a slowly breathing graph
-    for (let i = 0; i < allNodes.length; i++) {
-      const n = allNodes[i];
-      n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * n.driftAmp * 0.55;
-      n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed * 0.8 + n.phase) * n.driftAmp * 0.55;
-      n.mesh.position.z = n.basePos.z + Math.sin(t * n.speed * 0.6 + n.phase) * n.driftAmp * 0.4;
-
-      // subtle pulsing "activation" glow, like traversal visiting a node
-      const pulse = 0.75 + Math.sin(t * n.speed * 1.4 + n.phase) * 0.25;
-      n.mesh.material.opacity = pulse;
-    }
-
-    // update edges to follow their connected nodes, with a traveling-brightness pulse
-    for (let i = 0; i < allEdges.length; i++) {
-      const e = allEdges[i];
-      const posAttr = e.line.geometry.attributes.position;
-      posAttr.setXYZ(0, e.a.mesh.position.x, e.a.mesh.position.y, e.a.mesh.position.z);
-      posAttr.setXYZ(1, e.b.mesh.position.x, e.b.mesh.position.y, e.b.mesh.position.z);
-      posAttr.needsUpdate = true;
-
-      const pulse = 0.16 + (Math.sin(t * e.speed + e.phase) * 0.5 + 0.5) * 0.28;
-      e.material.opacity = pulse;
-    }
+    if (currentTheme) currentTheme.update(t);
 
     renderer.render(scene, camera);
   }
