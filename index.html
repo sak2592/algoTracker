@@ -1784,26 +1784,55 @@ function ladderDots(p) {
 }
 function diffBadge(diff) {
   const map = {
-    Easy: 'bg-easy/10 text-easy border-easy/30',
-    Medium: 'bg-medium/10 text-medium border-medium/30',
-    Hard: 'bg-hard/10 text-hard border-hard/30',
+    Easy: 'bg-easy/10 text-easy',
+    Medium: 'bg-medium/10 text-medium',
+    Hard: 'bg-hard/10 text-hard',
   };
-  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border ${map[diff]}">${diff}</span>`;
+  return `<span class="diff-badge text-xs font-semibold px-2 py-0.5 rounded ${map[diff]}">${diff}</span>`;
 }
 
 function trackBadge(track) {
   const t = track || 'DSA';
   const map = {
-    DSA: 'bg-brand/10 text-brand border-brand/30',
-    LLD: 'bg-brand-2/10 text-brand-2 border-brand-2/30',
-    HLD: 'bg-pink-400/10 text-pink-400 border-pink-400/30',
+    DSA: 'bg-brand/10 text-brand',
+    LLD: 'bg-brand-2/10 text-brand-2',
+    HLD: 'bg-pink-400/10 text-pink-400',
   };
-  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border ${map[t] || map.DSA}">${t}</span>`;
+  return `<span class="diff-badge text-xs font-semibold px-2 py-0.5 rounded ${map[t] || map.DSA}">${t}</span>`;
+}
+
+// Deterministic color per category name (e.g. every "DP" badge, across every
+// problem and every view, always gets the same hue) — hash the string to an
+// index into a fixed palette rather than assigning colors by insertion order,
+// so the mapping stays stable even as categories are added/removed/filtered.
+const CATEGORY_COLOR_CLASSES = [
+  'bg-brand/10 text-brand',
+  'bg-brand-2/10 text-brand-2',
+  'bg-pink-400/10 text-pink-400',
+  'bg-amber-400/10 text-amber-400',
+  'bg-emerald-400/10 text-emerald-400',
+  'bg-violet-400/10 text-violet-400',
+  'bg-orange-400/10 text-orange-400',
+  'bg-sky-400/10 text-sky-400',
+  'bg-rose-400/10 text-rose-400',
+  'bg-lime-400/10 text-lime-400',
+  'bg-fuchsia-400/10 text-fuchsia-400',
+  'bg-teal-400/10 text-teal-400',
+];
+function categoryColorClasses(category) {
+  const key = (category || 'Uncategorized').trim().toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return CATEGORY_COLOR_CLASSES[hash % CATEGORY_COLOR_CLASSES.length];
+}
+function categoryBadge(category) {
+  if (!category) return '';
+  return `<span class="diff-badge text-xs font-semibold px-2 py-0.5 rounded ${categoryColorClasses(category)} whitespace-nowrap inline-block max-w-full truncate">${escapeHtml(category)}</span>`;
 }
 
 function companyBadge(company) {
   if (!company) return '';
-  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border bg-violet-400/10 text-violet-400 border-violet-400/30 flex items-center gap-1 max-w-full" title="${escapeHtml(company)}"><i data-lucide="building-2" class="w-3 h-3 shrink-0"></i><span class="truncate">${escapeHtml(company)}</span></span>`;
+  return `<span class="diff-badge text-xs font-semibold px-2 py-0.5 rounded bg-violet-400/10 text-violet-400 flex items-center gap-1 max-w-full" title="${escapeHtml(company)}"><i data-lucide="building-2" class="w-3 h-3 shrink-0"></i><span class="truncate">${escapeHtml(company)}</span></span>`;
 }
 
 /* =========================================================
@@ -1921,7 +1950,7 @@ function buildAiPickCard(p, index) {
     <div class="flex items-center gap-2 mb-2 flex-wrap">
       ${trackBadge(p.track)}
       ${diffBadge(p.difficulty)}
-      <span class="text-[11px] text-mute">${escapeHtml(p.category || '')}</span>
+      ${categoryBadge(p.category)}
       ${companyBadge(p.company)}
       <div class="flex-1"></div>
       ${overdueLabel(p)}
@@ -2955,14 +2984,14 @@ function renderTable() {
           }
           <div class="flex items-center gap-2.5 mt-0.5 flex-wrap">
             ${p.description ? `<button data-description="${p.id}" class="text-[11px] font-medium text-accent hover:text-accent/80 text-left flex items-center gap-1 w-fit"><i data-lucide="file-text" class="w-5 h-5"></i>View Problem</button>` : ''}
-            ${p.notes ? `<button data-notes="${p.id}" class="text-[11px] text-mute hover:text-brand-2 text-left flex items-center gap-1 w-fit"><i data-lucide="sticky-note" class="w-5 h-5"></i>View notes</button>` : ''}
+            ${p.notes ? `<button data-notes="${p.id}" class="text-[11px] text-hard hover:text-hard/80 text-left flex items-center gap-1 w-fit"><i data-lucide="sticky-note" class="w-5 h-5"></i>View notes</button>` : ''}
             ${p.lastTimeMinutes ? `<span class="text-[11px] text-mute flex items-center gap-1" title="Time taken on last revision"><i data-lucide="timer" class="w-5 h-5"></i>${formatMinutes(p.lastTimeMinutes)}</span>` : ''}
           </div>
         </div>
       </td>
       <td class="px-4 py-3"><span class="inline-block max-w-full">${diffBadge(p.difficulty)}</span></td>
       <td class="px-3 py-3">
-        <span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute whitespace-nowrap inline-block">${escapeHtml(p.category)}</span>
+        ${categoryBadge(p.category)}
       </td>
       <td class="px-3 py-3">
         ${p.company ? companyBadge(p.company) : '<span class="text-xs text-mute">—</span>'}
@@ -3179,7 +3208,7 @@ function renderQueue() {
         <div class="flex items-center flex-wrap gap-2 mb-1">
           ${trackBadge(p.track)}
           ${diffBadge(p.difficulty)}
-          <span class="text-xs bg-surface3 border border-line px-2 py-0.5 rounded-md text-mute">${escapeHtml(p.category)}</span>
+          ${categoryBadge(p.category)}
           ${companyBadge(p.company)}
           ${dueLabel}
         </div>
