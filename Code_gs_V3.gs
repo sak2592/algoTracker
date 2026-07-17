@@ -138,7 +138,11 @@ function doPost(e) {
   try {
     lock.waitLock(20000); // avoid two simultaneous syncs corrupting the sheet
   } catch (lockErr) {
-    return jsonResponse({ ok: false, error: 'Server busy, please retry.' });
+    // Matches the {status, message} shape the client's saveDataToSheets()
+    // actually checks (data.status !== 'ok') — the old {ok, error} shape
+    // meant a lock timeout showed up client-side as a blank generic
+    // "Save failed" instead of this message.
+    return jsonResponse({ status: 'error', message: 'Server busy, please retry.' });
   }
 
   try {
@@ -165,7 +169,7 @@ function doPost(e) {
 
     if (action === 'pull') {
       return jsonResponse({
-        ok: true,
+        status: 'ok',
         problems: readAllProblems().filter(p => !p.deletedAt),
         revisionLog: readRevisionLog(),
         goals: readGoals(),
@@ -176,18 +180,18 @@ function doPost(e) {
       const merged = mergeSync(body.problems || [], body.revisionLog || [], body.deletedIds || []);
       if (body.goals) writeGoals(body.goals);
       return jsonResponse({
-        ok: true,
+        status: 'ok',
         problems: merged.problems,
         revisionLog: merged.revisionLog,
         deletedIds: merged.deletedIds, // every id ever deleted (app or Sheet) — lets any client drop stale copies
         goals: readGoals(),
-        syncedAt: Date.now(),
+        lastModified: merged.lastModified,
       });
     }
 
-    return jsonResponse({ ok: false, error: 'Unknown action: ' + action });
+    return jsonResponse({ status: 'error', message: 'Unknown action: ' + action });
   } catch (err) {
-    return jsonResponse({ ok: false, error: String(err && err.message ? err.message : err) });
+    return jsonResponse({ status: 'error', message: String(err && err.message ? err.message : err) });
   } finally {
     lock.releaseLock();
   }
