@@ -71,9 +71,11 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(600px 400px at 88% -5%, rgba(99,102,241,0.16), transparent 60%),
-      radial-gradient(500px 380px at 8% 8%, rgba(6,182,212,0.10), transparent 60%),
-      radial-gradient(700px 500px at 50% 110%, rgba(236,72,153,0.08), transparent 60%);
+      radial-gradient(600px 400px at 88% -5%, rgba(99,102,241,0.20), transparent 60%),
+      radial-gradient(500px 380px at 8% 8%, rgba(6,182,212,0.16), transparent 60%),
+      radial-gradient(700px 500px at 50% 110%, rgba(236,72,153,0.14), transparent 60%),
+      radial-gradient(550px 420px at 20% 60%, rgba(245,158,11,0.10), transparent 60%),
+      radial-gradient(500px 400px at 80% 60%, rgba(16,185,129,0.10), transparent 60%);
   }
 
   /* Force transparency on every surface panel with !important so this
@@ -82,14 +84,14 @@
      class token X only (so "bg-surface" won't also match "bg-surface2"),
      while [class*="X/"] separately catches opacity-modifier variants
      like "bg-surface/60" used on a few modals. */
-  [class~="bg-surface"]:not(.track-view-card)  { background: rgba(21,27,43,0.55) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
-  [class~="bg-surface2"] { background: rgba(30,41,59,0.5)  !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
-  [class~="bg-surface3"]:not(.track-icon) { background: rgba(35,47,69,0.5)  !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }
-  [class*="bg-surface/"]  { background: rgba(21,27,43,0.4) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
-  [class*="bg-surface2/"] { background: rgba(30,41,59,0.4) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
-  [class*="bg-surface3/"] { background: rgba(35,47,69,0.4) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
+  [class~="bg-surface"]:not(.track-view-card)  { background: rgba(21,27,43,0.16) !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
+  [class~="bg-surface2"] { background: rgba(30,41,59,0.14)  !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
+  [class~="bg-surface3"]:not(.track-icon) { background: rgba(35,47,69,0.14)  !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
+  [class*="bg-surface/"]  { background: rgba(21,27,43,0.10) !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; }
+  [class*="bg-surface2/"] { background: rgba(30,41,59,0.10) !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; }
+  [class*="bg-surface3/"] { background: rgba(35,47,69,0.10) !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; }
 
-  .stat-card { position: relative; overflow: hidden; background: rgba(22,29,51,0.5); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .stat-card { position: relative; overflow: hidden; background: rgba(22,29,51,0.14); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--sc-accent, #6366f1); opacity: .9; }
   .stat-card .stat-icon {
     background: var(--sc-icon-bg, rgba(99,102,241,0.14));
@@ -110,6 +112,12 @@
   .progress-mode-btn { color: #94a3b8; background: transparent; border: 1px solid #232a3d; transition: color .15s ease, background .15s ease, border-color .15s ease; }
   .progress-mode-btn:hover { color: #f8fafc; }
   .progress-mode-btn.active { color: #06b6d4; background: rgba(6,182,212,0.12); border-color: rgba(6,182,212,0.4); }
+  .goal-mode-btn { color: #94a3b8; background: transparent; border: 1px solid #232a3d; transition: color .15s ease, background .15s ease, border-color .15s ease; }
+  .goal-mode-btn:hover { color: #f8fafc; }
+  .goal-mode-btn.active { color: #ec4899; background: rgba(236,72,153,0.12); border-color: rgba(236,72,153,0.4); }
+  .goal-bucket { position: relative; overflow: hidden; }
+  .goal-bucket-track { position: relative; height: 14px; border-radius: 999px; background: #1a2033; overflow: hidden; }
+  .goal-bucket-fill { height: 100%; border-radius: 999px; transition: width .35s ease; }
   .progress-bar-col { flex: 1 1 0; min-width: 0; display: flex; align-items: flex-end; justify-content: center; height: 100%; }
   .progress-bar { width: 100%; max-width: 22px; margin: 0 auto; border-radius: 4px 4px 2px 2px; background: linear-gradient(180deg, #06b6d4, #6366f1); min-height: 3px; transition: height .25s ease, opacity .15s ease; cursor: pointer; position: relative; }
   .progress-bar:hover { opacity: 0.8; }
@@ -122,13 +130,13 @@
   .track-opt-btn.active[data-track="DSA"] { border-color: #6366f1; color: #f8fafc; background: rgba(99,102,241,0.14); }
   .track-opt-btn.active[data-track="LLD"] { border-color: #06b6d4; color: #f8fafc; background: rgba(6,182,212,0.14); }
   .track-opt-btn.active[data-track="HLD"] { border-color: #f472b6; color: #f8fafc; background: rgba(244,114,182,0.14); }
-  .track-view-card { will-change: transform; background: rgba(19,26,44,0.48); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+  .track-view-card { will-change: transform; background: rgba(19,26,44,0.18); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
   .track-view-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
   .track-view-card .track-accent { opacity: .9; background: var(--tv-accent, #6366f1); }
   .track-view-card .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.14)); color: var(--tv-accent, #6366f1); border: 1px solid rgba(255,255,255,0.06); }
   .track-view-card .track-count { color: var(--tv-accent, #6366f1); }
   .track-view-card { border-color: var(--tv-border, #334155); }
-  .track-view-card.active { background: var(--tv-bg, rgba(35,47,69,0.6)); border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
+  .track-view-card.active { background: var(--tv-bg, rgba(35,47,69,0.28)); border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
   .track-view-card.track-view-glow { animation: trackGlow .5s ease; }
   @keyframes trackGlow {
     0% { box-shadow: 0 0 0 0 var(--tv-accent, rgba(99,102,241,0.5)); }
@@ -138,18 +146,18 @@
   .track-view-card.active .track-accent { opacity: 1; background: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.16)); color: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-count { color: var(--tv-accent, #6366f1); }
-  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: rgba(41,52,76,0.6); --tv-border: #475569; }
-  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: linear-gradient(180deg, rgba(59,130,246,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(59,130,246,0.55); }
-  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: linear-gradient(180deg, rgba(34,211,238,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(34,211,238,0.55); }
-  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: linear-gradient(180deg, rgba(251,143,206,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(251,143,206,0.55); }
-  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: linear-gradient(180deg, rgba(250,204,21,0.16), rgba(30,41,59,0.55)); --tv-border: rgba(250,204,21,0.55); }
+  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: rgba(41,52,76,0.28); --tv-border: #475569; }
+  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: linear-gradient(180deg, rgba(59,130,246,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(59,130,246,0.55); }
+  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: linear-gradient(180deg, rgba(34,211,238,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(34,211,238,0.55); }
+  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: linear-gradient(180deg, rgba(251,143,206,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(251,143,206,0.55); }
+  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: linear-gradient(180deg, rgba(250,204,21,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(250,204,21,0.55); }
   .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"], .track-view-card.active[data-tab="queue"] { background: var(--tv-bg); }
   .tab-btn { border-color: transparent; color: #94a3b8; }
   .tab-btn[data-tab="calendar"] { color: #f59e0b; }
   .tab-btn[data-tab="calendar"].active { background: rgba(245,158,11,0.14); color: #f59e0b; }
   .tab-btn[data-tab="ai"] { border-color: transparent; background: transparent; color: #06b6d4; }
   .tab-btn[data-tab="ai"].active { border-color: #06b6d4; background: linear-gradient(180deg, rgba(6,182,212,0.14), #1e293b); color: #06b6d4; }
-  .ai-pick-card { background: rgba(19,26,44,0.48); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .ai-pick-card { background: rgba(19,26,44,0.18); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .btn-nailed {
     background: linear-gradient(135deg, #10b981, #06b6d4);
     color: #04140f;
@@ -219,7 +227,7 @@
      closer to pfm_v9's header proportions (bigger logo mark, taller
      top/bottom padding) instead of the previous compact Tailwind bar.
      ===================================================================== */
-  .app-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid #1e293b; background: rgba(11,15,25,0.68); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .app-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid #1e293b; background: rgba(11,15,25,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .app-header::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent); pointer-events: none; }
   .app-header-inner { position: relative; max-width: 80rem; margin: 0 auto; padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 14px; }
   .app-header-row { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
@@ -640,6 +648,117 @@
     <p id="progress-bar-tooltip-text" class="text-[11px] font-num font-semibold text-ink"></p>
   </div>
 
+  <!-- ===================== TARGETS / GOALS ===================== -->
+  <section class="bg-surface border border-line rounded-xl p-4">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <div class="flex items-center gap-1.5">
+        <i data-lucide="flag" class="w-4 h-4 text-brand-2"></i>
+        <p class="text-xs font-semibold">Targets</p>
+        <span id="goal-period-label" class="text-mute text-[10px]"></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
+          <button type="button" data-goal-mode="weekly" class="goal-mode-btn text-[10px] font-medium px-2 py-1 rounded-md">Weekly</button>
+          <button type="button" data-goal-mode="monthly" class="goal-mode-btn text-[10px] font-medium px-2 py-1 rounded-md">Monthly</button>
+        </div>
+        <button type="button" id="goal-edit-btn" title="Set targets" class="flex items-center gap-1 text-[11px] font-medium text-brand-2 hover:text-brand-2/80 border border-line hover:border-line2 rounded-lg px-2.5 py-1.5 transition">
+          <i data-lucide="settings-2" class="w-4 h-4"></i><span class="hidden sm:inline">Set targets</span>
+        </button>
+      </div>
+    </div>
+    <div id="goal-buckets" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+    <div id="goal-empty" class="hidden flex-col items-center justify-center py-6 text-center">
+      <i data-lucide="flag" class="w-8 h-8 text-line2 mb-2 mx-auto"></i>
+      <p class="text-xs text-mute">No targets set yet — set a weekly or monthly goal per track to track your pace.</p>
+      <button type="button" id="goal-empty-set-btn" class="mt-3 text-xs font-medium text-brand-2 hover:underline">Set targets now</button>
+    </div>
+
+    <div id="goal-missed-section" class="hidden mt-4 pt-4 border-t border-line">
+      <button type="button" id="goal-missed-toggle" class="flex items-center gap-1.5 w-full text-left group">
+        <i data-lucide="calendar-x" class="w-4 h-4 text-hard"></i>
+        <p class="text-xs font-semibold">Missed Targets</p>
+        <span class="text-mute text-[10px]">— past periods you fell short on</span>
+        <span id="goal-missed-count" class="hidden text-[10px] font-num font-semibold text-hard bg-hard/10 border border-hard/30 rounded-full px-1.5 py-0.5"></span>
+        <i data-lucide="external-link" class="w-4 h-4 text-mute ml-auto group-hover:text-brand-2 transition"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== MODAL: SET TARGETS ===================== -->
+  <div id="goal-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl p-6 max-w-md w-full my-8 relative fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <button id="goal-modal-close" type="button" class="absolute top-4 right-4 text-mute hover:text-ink transition">
+        <i data-lucide="x" class="w-7 h-7"></i>
+      </button>
+      <div class="flex items-center gap-2 mb-5">
+        <i data-lucide="flag" class="w-7 h-7 text-brand-2"></i>
+        <h2 class="font-semibold text-lg">Set Targets</h2>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-medium text-mute mb-1.5 block">Weekly target — problems to complete</label>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] text-mute mb-1 block">DSA</label>
+              <input id="goal-weekly-dsa" type="number" min="0" step="1" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-num" />
+            </div>
+            <div>
+              <label class="text-[10px] text-mute mb-1 block">LLD</label>
+              <input id="goal-weekly-lld" type="number" min="0" step="1" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-num" />
+            </div>
+            <div>
+              <label class="text-[10px] text-mute mb-1 block">HLD</label>
+              <input id="goal-weekly-hld" type="number" min="0" step="1" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-num" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1.5 block">Monthly target — problems to complete</label>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] text-mute mb-1 block">DSA</label>
+              <input id="goal-monthly-dsa" type="number" min="0" step="1" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-num" />
+            </div>
+            <div>
+              <label class="text-[10px] text-mute mb-1 block">LLD</label>
+              <input id="goal-monthly-lld" type="number" min="0" step="1" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-num" />
+            </div>
+            <div>
+              <label class="text-[10px] text-mute mb-1 block">HLD</label>
+              <input id="goal-monthly-hld" type="number" min="0" step="1" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm font-num" />
+            </div>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-xs text-mute cursor-pointer pt-1">
+          <input id="goal-notify-toggle" type="checkbox" class="w-4 h-4 rounded border-line2 accent-brand cursor-pointer" />
+          Notify me (browser notification) when I'm falling behind pace
+        </label>
+        <div class="flex gap-2 pt-2">
+          <button type="button" id="goal-save-btn" class="flex-1 bg-brand hover:bg-brand/80 transition text-white text-sm font-medium px-4 py-2.5 rounded-lg">Save Targets</button>
+          <button type="button" id="goal-modal-cancel" class="text-sm font-medium text-mute hover:text-ink transition px-4 py-2.5">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: MISSED TARGETS ===================== -->
+  <div id="missed-targets-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl p-6 max-w-lg w-full my-8 relative fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <button id="missed-targets-modal-close" type="button" class="absolute top-4 right-4 text-mute hover:text-ink transition">
+        <i data-lucide="x" class="w-7 h-7"></i>
+      </button>
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="calendar-x" class="w-7 h-7 text-hard"></i>
+        <h2 class="font-semibold text-lg">Missed Targets</h2>
+      </div>
+      <div id="missed-targets-year-tabs" class="flex items-center gap-1.5 mb-4 flex-wrap"></div>
+      <div id="missed-targets-modal-body">
+        <div id="missed-targets-modal-list" class="space-y-4"></div>
+        <p id="missed-targets-modal-empty" class="hidden text-xs text-mute py-2">No misses that year — nice work. 🎉</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== TAB: ALL PROBLEMS ===================== -->
   <section id="tab-dashboard" class="space-y-4">
     <div class="bg-surface border border-line rounded-xl p-4">
@@ -699,19 +818,20 @@
     </div>
 
     <div class="bg-surface border border-line rounded-xl overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[960px] text-sm table-fixed">
+      <div class="overflow-x-auto overflow-y-auto max-h-[65vh]">
+        <table class="w-full min-w-[1310px] text-sm table-fixed">
           <colgroup>
-            <col style="width:3%">
-            <col style="width:12%">
-            <col style="width:5%">
-            <col style="width:25%">
-            <col style="width:8%">
-            <col style="width:9%">
-            <col style="width:9%">
-            <col style="width:6%">
-            <col style="width:11%">
-            <col style="width:12%">
+            <col style="width:40px">
+            <col style="width:140px">
+            <col style="width:70px">
+            <col style="width:260px">
+            <col style="width:100px">
+            <col style="width:110px">
+            <col style="width:150px">
+            <col style="width:110px">
+            <col style="width:90px">
+            <col style="width:116px">
+            <col style="width:136px">
           </colgroup>
           <thead class="sticky top-0 z-10">
             <tr class="border-b border-line bg-surface2/90 backdrop-blur text-mute text-xs uppercase tracking-wide">
@@ -723,10 +843,16 @@
               <th class="text-left font-medium px-4 py-3">Title</th>
               <th class="text-left font-medium px-4 py-3">Difficulty</th>
               <th class="text-left font-medium px-3 py-3">Category</th>
-              <th class="text-left font-medium px-4 py-3">Last Revised</th>
+              <th class="text-left font-medium px-3 py-3">Company</th>
+              <th class="text-left font-medium px-4 py-3 whitespace-nowrap">Last Revised</th>
               <th class="text-center font-medium px-2 py-3" title="Number of times marked revised">Revisions</th>
-              <th class="text-left font-medium pl-4 pr-1 py-3">Next Review</th>
-              <th class="text-left font-medium pl-1 pr-2 py-3">Actions</th>
+              <th class="text-left font-medium pl-4 pr-4 py-3">
+                <button type="button" id="sort-due-btn" class="flex items-center gap-1 hover:text-ink transition cursor-pointer select-none uppercase tracking-wide whitespace-nowrap" title="Sort by due date">
+                  <span class="whitespace-nowrap">Next Review</span>
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 shrink-0"></i>
+                </button>
+              </th>
+              <th class="text-center font-medium pl-4 pr-2 py-3">Actions</th>
             </tr>
           </thead>
           <tbody id="problems-tbody" class="divide-y divide-line/60"></tbody>
@@ -758,8 +884,8 @@
   </section>
 
   <!-- ===================== MODAL: ADD NEW ===================== -->
-  <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl p-6 max-w-2xl w-full my-8 relative fade-in">
+  <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl p-6 max-w-2xl w-full my-8 relative fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
       <button id="add-modal-close" type="button" class="absolute top-4 right-4 text-mute hover:text-ink transition">
         <i data-lucide="x" class="w-7 h-7"></i>
       </button>
@@ -813,7 +939,6 @@ Tip: ASCII trees / 2D arrays / diagrams paste in fine as plain text, e.g.
       2   3
 
 Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm resize-none font-mono overflow-x-auto"></textarea>
-          <p class="text-[11px] text-mute mt-1">Optional, but handy if you want to solve it offline — it'll show up on a "View Problem" button in the table. Whatever spacing/alignment you type (trees, arrays, diagrams) is preserved exactly, character for character, when viewed later — no need to insert an image for that. Use "Insert Image" only for actual pictures/screenshots.</p>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -871,7 +996,13 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
       <i data-lucide="info" class="w-6 h-6 text-brand-2 shrink-0"></i>
       <p class="text-xs text-mute">Problems appear here once their next review date has arrived. Hit <span class="text-ink font-medium">Mark as Revised</span> to log the revision and push it to the next interval.</p>
     </div>
-    <div id="queue-list" class="grid gap-3"></div>
+    <div id="queue-list-wrap" class="max-h-[70vh] overflow-y-auto pr-1 -mr-1">
+      <div id="queue-list" class="grid gap-3"></div>
+    </div>
+    <div id="queue-pagination-bar" class="hidden flex-col sm:flex-row items-center justify-between gap-3 bg-surface border border-line rounded-xl px-4 py-3">
+      <p id="queue-pagination-summary" class="text-xs text-mute"></p>
+      <div id="queue-pagination-pages" class="flex items-center gap-1"></div>
+    </div>
     <div id="empty-queue" class="hidden flex-col items-center justify-center py-16 px-4 text-center bg-surface border border-line rounded-xl">
       <i data-lucide="check-circle-2" class="w-14 h-14 text-easy mb-3"></i>
       <p class="font-medium text-mute">You're all caught up!</p>
@@ -958,6 +1089,10 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
   </section>
 
 </main>
+
+<footer class="text-center py-6 text-[11px] text-mute">
+  Created by Selim Aktar Khan
+</footer>
 </div><!-- /#app-root -->
 
 <!-- ===================== EDIT NOTE PREVIEW MODAL (view notes) ===================== -->
@@ -996,7 +1131,7 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
       <h3 class="font-semibold text-sm flex items-center gap-2"><i data-lucide="refresh-cw" class="w-6 h-6 text-brand-2"></i>Google Sheet Sync</h3>
       <button id="sync-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
     </div>
-    <p class="text-xs text-mute mb-4 leading-relaxed">Paste the Web App URL from your deployed <code class="text-brand-2">Code.gs</code> Apps Script below. Every problem you log and every revision you mark syncs both ways with your Google Sheet's <span class="text-ink">Problems</span> and <span class="text-ink">Revision_log</span> tabs.</p>
+    <p class="text-xs text-mute mb-4 leading-relaxed">Paste the Web App URL from your deployed <code class="text-brand-2">Code.gs</code> Apps Script below. Every problem you log, every revision you mark, and your weekly/monthly targets sync both ways with your Google Sheet's <span class="text-ink">Problems</span>, <span class="text-ink">Revision_log</span>, and <span class="text-ink">Goals</span> tabs.</p>
 
     <label class="block text-[11px] font-medium text-mute mb-1">Web App URL</label>
     <input id="sync-url-input" type="url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-xs font-num mb-3" />
@@ -1328,6 +1463,7 @@ function setTrackView(track) {
   });
   if (track !== 'All') setTrackUI(track);
   currentPage = 1;
+  currentQueuePage = 1;
   renderAll();
 }
 
@@ -1374,6 +1510,7 @@ function showTab(name) {
   }
   if (name === 'calendar') renderCalendar();
   if (name === 'ai') { aiRotation = 0; renderAiPicks(); }
+  if (name === 'queue') { currentQueuePage = 1; renderQueue(); }
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1487,6 +1624,28 @@ function detectLinkPlatform(rawUrl) {
   return { platform: 'other', slug: parts[parts.length - 1] };
 }
 
+// Converts LeetCode's HTML-formatted problem statement into clean plain
+// text suitable for the description textarea (which renders plain text,
+// not HTML). Never attached to the live document, so nothing executes.
+function htmlToPlainText(html) {
+  let text = String(html)
+    .replace(/<sup>/gi, '^').replace(/<\/sup>/gi, '')
+    .replace(/<li[^>]*>/gi, '\n- ')
+    .replace(/<\/li>/gi, '')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/ul>|<\/ol>/gi, '\n')
+    .replace(/<[^>]+>/g, ''); // strip any remaining tags
+
+  // Decode HTML entities (&nbsp;, &lt;, &amp;, etc.) via a detached textarea
+  const ta = document.createElement('textarea');
+  ta.innerHTML = text;
+  text = ta.value;
+
+  return text.replace(/\n{3,}/g, '\n\n').trim();
+}
+
 function setLinkStatus(msg, tone = 'mute') {
   const statusEl = document.getElementById('f-link-status');
   if (!statusEl) return;
@@ -1500,6 +1659,7 @@ async function autofillFromLink(force = false) {
   const titleField = document.getElementById('f-title');
   const categoryField = document.getElementById('f-category');
   const difficultyField = document.getElementById('f-difficulty');
+  const descriptionField = document.getElementById('f-description');
   const url = linkInput.value.trim();
 
   if (!url) { setLinkStatus(''); return; }
@@ -1511,6 +1671,7 @@ async function autofillFromLink(force = false) {
 
   const originalTitle = titleField.value.trim();
   const originalCategory = categoryField.value.trim();
+  const originalDescription = descriptionField.value.trim();
   const guessedTitle = slugToTitleGuess(decodeURIComponent(parsed.slug));
   if (!originalTitle && guessedTitle) titleField.value = guessedTitle;
 
@@ -1543,7 +1704,23 @@ async function autofillFromLink(force = false) {
     if (!originalCategory && Array.isArray(data.topicTags) && data.topicTags.length) {
       categoryField.value = data.topicTags.slice(0, 3).map(t => t.name || t).join(', ');
     }
-    setLinkStatus('Auto-filled from LeetCode ✓', 'good');
+
+    // The API returns the problem statement as HTML under one of a few
+    // possible field names depending on version — check them in order.
+    const rawQuestionHtml = data.question || data.content || data.questionContent || data.body || '';
+    let descriptionFilled = false;
+    if (!originalDescription && rawQuestionHtml) {
+      const plain = htmlToPlainText(rawQuestionHtml);
+      if (plain) {
+        descriptionField.value = plain;
+        descriptionFilled = true;
+      }
+    }
+
+    setLinkStatus(
+      descriptionFilled ? 'Auto-filled from LeetCode, including description ✓' : 'Auto-filled from LeetCode ✓',
+      'good'
+    );
   } catch (err) {
     setLinkStatus("Couldn't reach LeetCode's API right now (it may be waking up or rate-limited) — title guessed from the URL, please check difficulty/category yourself.", 'bad');
   }
@@ -1619,7 +1796,7 @@ function trackBadge(track) {
 
 function companyBadge(company) {
   if (!company) return '';
-  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border bg-violet-400/10 text-violet-400 border-violet-400/30 flex items-center gap-1 max-w-[110px]" title="${escapeHtml(company)}"><i data-lucide="building-2" class="w-3 h-3 shrink-0"></i><span class="truncate">${escapeHtml(company)}</span></span>`;
+  return `<span class="diff-badge text-[11px] font-semibold px-2 py-0.5 rounded border bg-violet-400/10 text-violet-400 border-violet-400/30 flex items-center gap-1 max-w-full" title="${escapeHtml(company)}"><i data-lucide="building-2" class="w-3 h-3 shrink-0"></i><span class="truncate">${escapeHtml(company)}</span></span>`;
 }
 
 /* =========================================================
@@ -2157,6 +2334,470 @@ document.querySelectorAll('.progress-mode-btn').forEach(btn => {
 });
 
 /* =========================================================
+   TARGETS / GOALS
+   Lets the person set a weekly and/or monthly target count of
+   problems to complete per track (DSA/LLD/HLD). Progress is
+   measured as the number of distinct problems in that track with
+   at least one revisionLog entry inside the current period
+   (Mon–Sun for weekly, calendar month for monthly) — i.e. problems
+   actually practiced, not just added. Shows a bucket-style fill
+   per track plus days-left-in-period, and can nudge with a
+   browser notification when the pace is falling behind.
+========================================================= */
+const GOALS_KEY = 'dsa_notebook_goals';
+const GOAL_MODE_KEY = 'dsa_notebook_goal_mode';
+const GOAL_LAST_NOTIFIED_KEY = 'dsa_notebook_goal_last_notified';
+const GOAL_TRACKS = ['DSA', 'LLD', 'HLD'];
+
+function loadGoals() {
+  try {
+    const raw = localStorage.getItem(GOALS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        weekly: { DSA: 0, LLD: 0, HLD: 0, ...(parsed.weekly || {}) },
+        monthly: { DSA: 0, LLD: 0, HLD: 0, ...(parsed.monthly || {}) },
+        notify: !!parsed.notify,
+      };
+    }
+  } catch (e) {}
+  return { weekly: { DSA: 0, LLD: 0, HLD: 0 }, monthly: { DSA: 0, LLD: 0, HLD: 0 }, notify: false };
+}
+function saveGoals() {
+  localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+}
+let goals = loadGoals();
+let goalMode = localStorage.getItem(GOAL_MODE_KEY) || 'weekly';
+
+// Monday-start week, inclusive end-of-day boundaries; calendar month otherwise.
+function getGoalPeriodRange(mode, ref = new Date()) {
+  if (mode === 'monthly') {
+    const start = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    const end = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
+    return { start, end };
+  }
+  const d = new Date(ref);
+  const day = d.getDay(); // 0 = Sun
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const start = new Date(d);
+  start.setDate(d.getDate() + diffToMonday);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start, end };
+}
+
+// offset=0 is the current period, offset=1 the one before it, etc.
+function getGoalPeriodRangeOffset(mode, offset) {
+  const now = new Date();
+  if (mode === 'monthly') {
+    const ref = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    return getGoalPeriodRange(mode, ref);
+  }
+  const ref = new Date(now);
+  ref.setDate(ref.getDate() - offset * 7);
+  return getGoalPeriodRange(mode, ref);
+}
+
+function goalPeriodLabel(mode, start, end) {
+  if (mode === 'monthly') return start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return `${fmtDisplay(toISO(start))} – ${fmtDisplay(toISO(end))}`;
+}
+
+function goalPeriodKey(mode, start) {
+  return `${mode}:${toISO(start)}`;
+}
+
+// Pure count of distinct problems-per-track with a revisionLog entry inside [start, end].
+function countGoalCompletions(start, end) {
+  const startISO = toISO(start);
+  const endISO = toISO(end);
+  const trackById = {};
+  problems.forEach(p => { trackById[p.id] = p.track || 'DSA'; });
+
+  const doneByTrack = { DSA: new Set(), LLD: new Set(), HLD: new Set() };
+  revisionLog.forEach(r => {
+    if (!r.date) return;
+    const iso = String(r.date).slice(0, 10);
+    if (iso < startISO || iso > endISO) return;
+    const track = trackById[r.problem_id];
+    if (track && doneByTrack[track]) doneByTrack[track].add(r.problem_id);
+  });
+  return { DSA: doneByTrack.DSA.size, LLD: doneByTrack.LLD.size, HLD: doneByTrack.HLD.size };
+}
+
+function computeGoalProgress(mode) {
+  const { start, end } = getGoalPeriodRange(mode);
+  const todayIso = todayISO();
+  const counts = countGoalCompletions(start, end);
+
+  const totalDays = Math.round((end - start) / 86400000) + 1;
+  const elapsedDays = Math.min(totalDays, Math.max(1, Math.round((parseISODate(todayIso) - start) / 86400000) + 1));
+  const daysLeft = Math.max(0, totalDays - elapsedDays);
+
+  return { start, end, totalDays, elapsedDays, daysLeft, counts };
+}
+
+// Earliest date the person actually has any logged activity — used to bound
+// how far back we check for misses, so we don't flag weeks/months before
+// they'd even started using the tracker.
+function earliestActivityDate() {
+  let earliest = null;
+  revisionLog.forEach(r => {
+    if (!r.date) return;
+    const d = parseISODate(r.date);
+    if (d && (!earliest || d < earliest)) earliest = d;
+  });
+  return earliest;
+}
+
+// Looks back over every fully-completed period (not the current, still-
+// running one) since the person's earliest logged activity — spans all
+// history, all years, not just a recent window — and flags any
+// track/period where the currently-set target wasn't met. Evaluated
+// against today's targets, since past target values aren't separately
+// tracked.
+function computeMissedPeriods(mode) {
+  const targets = goals[mode];
+  const hasAnyTarget = GOAL_TRACKS.some(t => Number(targets[t]) > 0);
+  if (!hasAnyTarget) return [];
+
+  const earliest = earliestActivityDate();
+  if (!earliest) return []; // nothing logged yet — nothing to judge
+
+  const results = [];
+  const HARD_CAP = 1040; // safety bound (~20 years of weeks) against runaway loops
+  for (let offset = 1; offset <= HARD_CAP; offset++) {
+    const { start, end } = getGoalPeriodRangeOffset(mode, offset);
+    if (end < earliest) break; // gone past all recorded activity
+    const counts = countGoalCompletions(start, end);
+    const misses = GOAL_TRACKS
+      .filter(track => Number(targets[track]) > 0 && counts[track] < Number(targets[track]))
+      .map(track => ({ track, done: counts[track], target: Number(targets[track]) }));
+    if (misses.length > 0) {
+      results.push({ start, end, label: goalPeriodLabel(mode, start, end), key: goalPeriodKey(mode, start), misses });
+    }
+  }
+  return results;
+}
+
+function renderMissedTargets() {
+  const section = document.getElementById('goal-missed-section');
+  const countBadge = document.getElementById('goal-missed-count');
+
+  // The popup covers weekly and monthly misses together, so the section
+  // only needs a target set on *either* mode (not just whichever mode is
+  // currently toggled on the Targets card) to be worth showing at all.
+  const hasAnyTargetEver = ['weekly', 'monthly'].some(mode => GOAL_TRACKS.some(t => Number(goals[mode][t]) > 0));
+  if (!hasAnyTargetEver) {
+    section.classList.add('hidden');
+    return;
+  }
+  section.classList.remove('hidden');
+
+  const totalMisses = ['weekly', 'monthly'].reduce((sum, mode) => sum + computeMissedPeriods(mode).length, 0);
+  if (totalMisses === 0) {
+    countBadge.classList.add('hidden');
+  } else {
+    countBadge.textContent = totalMisses;
+    countBadge.classList.remove('hidden');
+  }
+}
+
+// Groups every missed weekly/monthly period (across all recorded history)
+// by calendar year, so the popup can show, on demand, every target missed
+// in a given year — regardless of which toggle (weekly/monthly) happens
+// to be active on the main Targets card.
+function computeMissedPeriodsByYear() {
+  const byYear = {};
+  ['weekly', 'monthly'].forEach(mode => {
+    computeMissedPeriods(mode).forEach(period => {
+      const year = period.start.getFullYear();
+      if (!byYear[year]) byYear[year] = { weekly: [], monthly: [] };
+      byYear[year][mode].push(period);
+    });
+  });
+  return byYear;
+}
+
+// Remembers which year's tab was last open so re-opening the popup
+// mid-session lands back where the person left it.
+let missedTargetsModalYear = null;
+
+function renderMissedTargetsModal(year) {
+  const byYear = computeMissedPeriodsByYear();
+  const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+  const tabsWrap = document.getElementById('missed-targets-year-tabs');
+  const list = document.getElementById('missed-targets-modal-list');
+  const empty = document.getElementById('missed-targets-modal-empty');
+
+  if (years.length === 0) {
+    tabsWrap.innerHTML = '';
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  if (!year || !years.includes(year)) {
+    const currentYear = new Date().getFullYear();
+    year = years.includes(currentYear) ? currentYear : years[0];
+  }
+  missedTargetsModalYear = year;
+
+  tabsWrap.innerHTML = years.map(y => `
+    <button type="button" data-missed-year="${y}" class="missed-year-btn text-[11px] font-medium px-2.5 py-1 rounded-md transition ${y === year ? 'bg-brand text-white' : 'bg-surface2 text-mute hover:text-ink'}">${y}</button>
+  `).join('');
+  tabsWrap.querySelectorAll('.missed-year-btn').forEach(btn => {
+    btn.addEventListener('click', () => renderMissedTargetsModal(Number(btn.dataset.missedYear)));
+  });
+
+  const data = byYear[year];
+  const sections = [];
+  ['weekly', 'monthly'].forEach(mode => {
+    const periods = data[mode];
+    if (!periods || periods.length === 0) return;
+    sections.push(`
+      <div>
+        <p class="text-[10px] font-semibold text-mute uppercase tracking-wide mb-2">${mode} — ${periods.length} missed</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          ${periods.map(period => `
+            <div class="bg-surface2 border border-hard/30 rounded-lg px-3 py-2.5">
+              <p class="text-[11px] font-semibold text-mute mb-1.5">${period.label}</p>
+              <div class="flex flex-wrap gap-1.5">
+                ${period.misses.map(m => `
+                  <span class="inline-flex items-center gap-1 text-[11px] font-num font-medium text-hard bg-hard/10 border border-hard/30 rounded-full px-2 py-0.5">
+                    ${m.track} ${m.done}/${m.target}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `);
+  });
+
+  if (sections.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+  } else {
+    list.innerHTML = sections.join('');
+    list.classList.remove('hidden');
+    empty.classList.add('hidden');
+  }
+}
+
+function openMissedTargetsModal() {
+  renderMissedTargetsModal(missedTargetsModalYear);
+  document.getElementById('missed-targets-modal').classList.remove('hidden');
+}
+function closeMissedTargetsModal() {
+  document.getElementById('missed-targets-modal').classList.add('hidden');
+}
+
+// Fires once per newly-closed period (not on every render) so a person
+// finds out, right after a week/month ends, that they came up short —
+// without repeating the same notice on every subsequent load.
+function checkFreshlyMissedPeriods() {
+  const seenKey = 'dsa_notebook_missed_periods_seen';
+  let seen = [];
+  try { seen = JSON.parse(localStorage.getItem(seenKey)) || []; } catch (e) {}
+  const seenSet = new Set(seen);
+  const newlyMissed = [];
+
+  ['weekly', 'monthly'].forEach(mode => {
+    const targets = goals[mode];
+    if (!GOAL_TRACKS.some(t => Number(targets[t]) > 0)) return;
+    const { start, end } = getGoalPeriodRangeOffset(mode, 1); // most recently completed period
+    const key = goalPeriodKey(mode, start);
+    if (seenSet.has(key)) return;
+    const counts = countGoalCompletions(start, end);
+    const misses = GOAL_TRACKS
+      .filter(track => Number(targets[track]) > 0 && counts[track] < Number(targets[track]))
+      .map(track => `${track} ${counts[track]}/${targets[track]}`);
+    seenSet.add(key);
+    if (misses.length > 0) {
+      newlyMissed.push({ mode, label: goalPeriodLabel(mode, start, end), misses });
+    }
+  });
+
+  localStorage.setItem(seenKey, JSON.stringify([...seenSet]));
+
+  if (newlyMissed.length > 0) {
+    newlyMissed.forEach(m => {
+      toast(`Missed ${m.mode} target for ${m.label}: ${m.misses.join(', ')}`, 'flag', 'text-hard');
+    });
+    if (goals.notify && 'Notification' in window && Notification.permission === 'granted') {
+      newlyMissed.forEach(m => {
+        new Notification(`You missed your ${m.mode} target`, { body: `${m.label}: ${m.misses.join(', ')}` });
+      });
+    }
+  }
+}
+
+function renderGoals() {
+  const wrap = document.getElementById('goal-buckets');
+  const empty = document.getElementById('goal-empty');
+  const periodLabel = document.getElementById('goal-period-label');
+
+  document.querySelectorAll('.goal-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.goalMode === goalMode);
+  });
+
+  const targets = goals[goalMode];
+  const hasAnyTarget = GOAL_TRACKS.some(t => Number(targets[t]) > 0);
+  const progress = computeGoalProgress(goalMode);
+
+  periodLabel.textContent = `— ${fmtDisplay(toISO(progress.start))} to ${fmtDisplay(toISO(progress.end))} · ${progress.daysLeft} day${progress.daysLeft === 1 ? '' : 's'} left`;
+  renderMissedTargets();
+
+  if (!hasAnyTarget) {
+    wrap.innerHTML = '';
+    wrap.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    return;
+  }
+  wrap.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
+
+  const trackColor = { DSA: '#3b82f6', LLD: '#22d3ee', HLD: '#fb8fce' };
+
+  wrap.innerHTML = GOAL_TRACKS.map(track => {
+    const target = Number(targets[track]) || 0;
+    const done = progress.counts[track] || 0;
+    if (target === 0) {
+      return `
+        <div class="goal-bucket bg-surface2 border border-line rounded-lg p-3">
+          <p class="text-xs font-semibold mb-2">${track}</p>
+          <p class="text-[11px] text-mute">No target set</p>
+        </div>`;
+    }
+    const pct = Math.min(100, Math.round((done / target) * 100));
+    const remaining = Math.max(0, target - done);
+    const paceNeeded = progress.daysLeft > 0 ? (remaining / (progress.daysLeft + 1)) : remaining;
+    // Expected fraction of the target by now, given how much of the period has elapsed.
+    const expectedFrac = progress.totalDays > 0 ? progress.elapsedDays / progress.totalDays : 1;
+    const onPace = done >= target || done >= Math.floor(target * expectedFrac);
+    let statusHtml;
+    if (done >= target) {
+      statusHtml = `<span class="text-easy font-medium">🎉 Target hit!</span>`;
+    } else if (progress.daysLeft === 0) {
+      statusHtml = `<span class="text-hard font-medium">⏰ Last day — ${remaining} to go!</span>`;
+    } else if (onPace) {
+      statusHtml = `<span class="text-mute">${remaining} to go · on pace</span>`;
+    } else {
+      statusHtml = `<span class="text-overdue font-medium">⚠️ Behind — ${remaining} left in ${progress.daysLeft}d, hurry up!</span>`;
+    }
+    return `
+      <div class="goal-bucket bg-surface2 border border-line rounded-lg p-3">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-xs font-semibold">${track}</p>
+          <p class="text-[11px] font-num text-mute">${done}/${target}</p>
+        </div>
+        <div class="goal-bucket-track">
+          <div class="goal-bucket-fill" style="width:${pct}%; background:${trackColor[track]};"></div>
+        </div>
+        <p class="text-[11px] mt-2">${statusHtml}</p>
+      </div>`;
+  }).join('');
+}
+
+function setGoalMode(mode) {
+  goalMode = mode;
+  localStorage.setItem(GOAL_MODE_KEY, mode);
+  renderGoals();
+}
+document.querySelectorAll('.goal-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setGoalMode(btn.dataset.goalMode));
+});
+
+function openGoalModal() {
+  document.getElementById('goal-weekly-dsa').value = goals.weekly.DSA || '';
+  document.getElementById('goal-weekly-lld').value = goals.weekly.LLD || '';
+  document.getElementById('goal-weekly-hld').value = goals.weekly.HLD || '';
+  document.getElementById('goal-monthly-dsa').value = goals.monthly.DSA || '';
+  document.getElementById('goal-monthly-lld').value = goals.monthly.LLD || '';
+  document.getElementById('goal-monthly-hld').value = goals.monthly.HLD || '';
+  document.getElementById('goal-notify-toggle').checked = !!goals.notify;
+  const modal = document.getElementById('goal-modal');
+  modal.classList.remove('hidden');
+}
+function closeGoalModal() {
+  document.getElementById('goal-modal').classList.add('hidden');
+}
+document.getElementById('goal-edit-btn').addEventListener('click', openGoalModal);
+document.getElementById('goal-empty-set-btn').addEventListener('click', openGoalModal);
+
+document.getElementById('goal-missed-toggle').addEventListener('click', openMissedTargetsModal);
+document.getElementById('missed-targets-modal-close').addEventListener('click', closeMissedTargetsModal);
+document.getElementById('missed-targets-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'missed-targets-modal') closeMissedTargetsModal();
+});
+
+document.getElementById('goal-modal-close').addEventListener('click', closeGoalModal);
+document.getElementById('goal-modal-cancel').addEventListener('click', closeGoalModal);
+document.getElementById('goal-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'goal-modal') closeGoalModal();
+});
+
+document.getElementById('goal-save-btn').addEventListener('click', () => {
+  const num = (id) => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+  goals.weekly = { DSA: num('goal-weekly-dsa'), LLD: num('goal-weekly-lld'), HLD: num('goal-weekly-hld') };
+  goals.monthly = { DSA: num('goal-monthly-dsa'), LLD: num('goal-monthly-lld'), HLD: num('goal-monthly-hld') };
+  const wantsNotify = document.getElementById('goal-notify-toggle').checked;
+  goals.notify = wantsNotify;
+  saveGoals();
+  closeGoalModal();
+  renderGoals();
+  toast('Targets saved', 'flag', 'text-brand-2');
+
+  if (wantsNotify && 'Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().then(perm => {
+      if (perm !== 'granted') {
+        toast("Notifications weren't allowed — you'll still see pace status in-app.", 'bell-off', 'text-medium');
+      }
+    });
+  }
+  checkGoalPace(true);
+});
+
+// Nudges once per day at most, only for tracks that are actually behind pace,
+// and only if the person opted in and granted browser notification permission.
+function checkGoalPace(force = false) {
+  if (!goals.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const today = todayISO();
+  if (!force && localStorage.getItem(GOAL_LAST_NOTIFIED_KEY) === today) return;
+
+  const behindLines = [];
+  ['weekly', 'monthly'].forEach(mode => {
+    const targets = goals[mode];
+    const progress = computeGoalProgress(mode);
+    GOAL_TRACKS.forEach(track => {
+      const target = Number(targets[track]) || 0;
+      if (target === 0) return;
+      const done = progress.counts[track] || 0;
+      if (done >= target) return;
+      const expectedFrac = progress.totalDays > 0 ? progress.elapsedDays / progress.totalDays : 1;
+      const onPace = done >= Math.floor(target * expectedFrac);
+      if (!onPace) {
+        behindLines.push(`${track} (${mode}): ${done}/${target}, ${progress.daysLeft}d left`);
+      }
+    });
+  });
+
+  if (behindLines.length > 0) {
+    new Notification('Hurry up! You\'re behind on your target', {
+      body: behindLines.join('\n'),
+      icon: undefined,
+    });
+    localStorage.setItem(GOAL_LAST_NOTIFIED_KEY, today);
+  }
+}
+
+/* =========================================================
    RENDER: CATEGORY FILTER + DATALIST
 ========================================================= */
 function categoriesForTrack(track) {
@@ -2230,11 +2871,28 @@ function getFilteredProblems() {
       if (status === 'ok') return !isDue(p);
       return true;
     })
-    .sort((a, b) => a.nextReview.localeCompare(b.nextReview));
+    .sort((a, b) => {
+      if (sortColumn === 'due') {
+        const cmp = (a.nextReview || '').localeCompare(b.nextReview || '');
+        return sortDir === 'asc' ? cmp : -cmp;
+      }
+      // Newest added first (or oldest first if sortDir === 'asc').
+      // createdAt is a YYYY-MM-DD date so ties (multiple problems added the
+      // same day) fall back to the id, which embeds the creation timestamp
+      // (base36 Date.now()) as a tiebreaker.
+      const dateCmp = (b.createdAt || '').localeCompare(a.createdAt || '');
+      const idCmp = dateCmp !== 0 ? dateCmp : (b.id || '').localeCompare(a.id || '');
+      return sortDir === 'asc' ? -idCmp : idCmp;
+    });
 }
 
 const PAGE_SIZE = 25;
 let currentPage = 1;
+
+// Table sort state. Defaults to newest-added-first; clicking the "Next
+// Review" header switches to sorting by due date (asc/desc toggle).
+let sortColumn = 'added'; // 'added' | 'due'
+let sortDir = 'desc';     // for 'added': desc = newest first. for 'due': asc/desc
 
 // Bulk-selection state for the dashboard table. `selectedIds` persists across
 // re-renders/pagination (pruned against the current filtered list each render
@@ -2297,25 +2955,24 @@ function renderTable() {
       </td>
       <td class="px-4 py-3"><span class="inline-block max-w-full">${diffBadge(p.difficulty)}</span></td>
       <td class="px-3 py-3">
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute whitespace-nowrap inline-block">${escapeHtml(p.category)}</span>
-          ${companyBadge(p.company)}
-        </div>
+        <span class="text-xs bg-surface3 border border-line px-2 py-1 rounded-md text-mute whitespace-nowrap inline-block">${escapeHtml(p.category)}</span>
+      </td>
+      <td class="px-3 py-3">
+        ${p.company ? companyBadge(p.company) : '<span class="text-xs text-mute">—</span>'}
       </td>
       <td class="px-4 py-3 font-num text-xs text-mute whitespace-nowrap">${fmtDisplay(p.lastRevised)}</td>
       <td class="px-2 py-3 text-center">
         <span class="inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded-full text-[11px] font-num font-semibold bg-brand-2/10 text-brand-2 border border-brand-2/30" title="Revised ${revisionCountFor(p.id)} time${revisionCountFor(p.id) === 1 ? '' : 's'}">${revisionCountFor(p.id)}</span>
       </td>
-      <td class="pl-4 pr-1 py-3">
+      <td class="pl-4 pr-4 py-3">
         <p class="font-num text-xs whitespace-nowrap ${due ? 'text-overdue font-semibold' : 'text-mute'}">${fmtDisplay(p.nextReview)}</p>
         <div class="mt-1">${ladderDots(p)}</div>
       </td>
-      <td class="pl-1 pr-2 py-3">
-        <div class="flex items-center justify-start gap-0.5 flex-wrap">
-          <button data-revise-early="${p.id}" title="${due ? 'Mark as revised' : 'Level up (skip to next interval)'}" class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-easy transition shrink-0"><i data-lucide="trending-up" class="w-4 h-4"></i></button>
-          <button data-requeue="${p.id}" title="${due ? 'Already in Revision Queue' : 'Restart revision cycle from day 1'}" ${due ? 'disabled' : ''} class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed shrink-0"><i data-lucide="calendar-clock" class="w-4 h-4"></i></button>
-          <button data-edit="${p.id}" title="Edit" class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-brand-2 transition shrink-0"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-          <button data-delete="${p.id}" title="Delete" class="p-1 rounded-md hover:bg-surface3 text-mute hover:text-hard transition shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      <td class="pl-4 pr-2 py-3">
+        <div class="flex items-center justify-center gap-0.5 flex-wrap">
+          <button data-revise-early="${p.id}" title="${due ? 'Mark as revised' : 'Level up (skip to next interval)'}" class="p-1 rounded-md hover:bg-easy/10 text-easy transition shrink-0"><i data-lucide="trending-up" class="w-4 h-4"></i></button>
+          <button data-requeue="${p.id}" title="${due ? 'Already in Revision Queue' : 'Restart revision cycle from day 1'}" ${due ? 'disabled' : ''} class="p-1 rounded-md hover:bg-brand-2/10 text-brand-2 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed shrink-0"><i data-lucide="calendar-clock" class="w-4 h-4"></i></button>
+          <button data-edit="${p.id}" title="Edit" class="p-1 rounded-md hover:bg-accent/10 text-accent transition shrink-0"><i data-lucide="pencil" class="w-4 h-4"></i></button>
         </div>
       </td>
     `;
@@ -2323,10 +2980,24 @@ function renderTable() {
   });
 
   currentPageIds = pageList.map(p => p.id);
+  updateSortHeaderUI();
   safeCreateIcons();
   attachRowEvents();
   renderPagination(list.length, totalPages);
   renderBulkBar();
+}
+
+function updateSortHeaderUI() {
+  const btn = document.getElementById('sort-due-btn');
+  if (!btn) return;
+  const icon = btn.querySelector('i');
+  const isDueSort = sortColumn === 'due';
+  btn.classList.toggle('text-ink', isDueSort);
+  btn.classList.toggle('text-mute', !isDueSort);
+  if (icon) {
+    icon.setAttribute('data-lucide', isDueSort && sortDir === 'desc' ? 'chevron-up' : 'chevron-down');
+    icon.classList.toggle('text-brand-2', isDueSort);
+  }
 }
 
 function renderPagination(totalItems, totalPages) {
@@ -2466,6 +3137,9 @@ function attachRowEvents() {
 /* =========================================================
    RENDER: REVISION QUEUE
 ========================================================= */
+const QUEUE_PAGE_SIZE = 10;
+let currentQueuePage = 1;
+
 function renderQueue() {
   const list = document.getElementById('queue-list');
   const due = trackScopedProblems().filter(isDueWithinWeek).sort((a,b) => a.nextReview.localeCompare(b.nextReview));
@@ -2474,7 +3148,14 @@ function renderQueue() {
   document.getElementById('empty-queue').classList.toggle('flex', due.length === 0);
   document.getElementById('empty-queue').classList.toggle('hidden', due.length !== 0);
 
-  due.forEach(p => {
+  const totalPages = Math.max(1, Math.ceil(due.length / QUEUE_PAGE_SIZE));
+  if (currentQueuePage > totalPages) currentQueuePage = totalPages;
+  if (currentQueuePage < 1) currentQueuePage = 1;
+
+  const startIdx = (currentQueuePage - 1) * QUEUE_PAGE_SIZE;
+  const pageList = due.slice(startIdx, startIdx + QUEUE_PAGE_SIZE);
+
+  pageList.forEach(p => {
     const dayDiff = Math.round((new Date(p.nextReview) - new Date(todayISO())) / 86400000);
     let dueLabel;
     if (dayDiff > 0) {
@@ -2526,6 +3207,68 @@ function renderQueue() {
   list.querySelectorAll('[data-description]').forEach(btn => {
     btn.addEventListener('click', () => openDescriptionModal(btn.dataset.description));
   });
+
+  renderQueuePagination(due.length, totalPages);
+}
+
+function renderQueuePagination(totalItems, totalPages) {
+  const bar = document.getElementById('queue-pagination-bar');
+  const summary = document.getElementById('queue-pagination-summary');
+  const pagesWrap = document.getElementById('queue-pagination-pages');
+  const scrollWrap = document.getElementById('queue-list-wrap');
+
+  if (totalItems === 0 || totalPages <= 1) {
+    bar.classList.add('hidden');
+    bar.classList.remove('flex');
+  } else {
+    bar.classList.remove('hidden');
+    bar.classList.add('flex');
+
+    const startIdx = (currentQueuePage - 1) * QUEUE_PAGE_SIZE + 1;
+    const endIdx = Math.min(currentQueuePage * QUEUE_PAGE_SIZE, totalItems);
+    summary.textContent = `Showing ${startIdx}–${endIdx} of ${totalItems}`;
+
+    pagesWrap.innerHTML = '';
+
+    const mkBtn = (label, page, opts = {}) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      const isActive = page === currentQueuePage && !opts.nav;
+      btn.className = `min-w-[30px] h-[30px] px-2 rounded-md text-xs font-num font-medium border transition
+        ${isActive ? 'bg-brand border-brand text-white' : 'bg-surface2 border-line text-mute hover:border-line2 hover:text-ink'}
+        ${opts.disabled ? 'opacity-40 cursor-not-allowed' : ''}`;
+      if (!opts.disabled) {
+        btn.addEventListener('click', () => {
+          currentQueuePage = page;
+          renderQueue();
+          scrollWrap.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      } else {
+        btn.disabled = true;
+      }
+      pagesWrap.appendChild(btn);
+    };
+
+    mkBtn('‹', Math.max(1, currentQueuePage - 1), { nav: true, disabled: currentQueuePage === 1 });
+
+    const windowSize = 5;
+    let start = Math.max(1, currentQueuePage - Math.floor(windowSize / 2));
+    let end = Math.min(totalPages, start + windowSize - 1);
+    start = Math.max(1, end - windowSize + 1);
+
+    if (start > 1) {
+      mkBtn('1', 1);
+      if (start > 2) { const dots = document.createElement('span'); dots.className = 'text-mute text-xs px-1'; dots.textContent = '…'; pagesWrap.appendChild(dots); }
+    }
+    for (let i = start; i <= end; i++) mkBtn(String(i), i);
+    if (end < totalPages) {
+      if (end < totalPages - 1) { const dots = document.createElement('span'); dots.className = 'text-mute text-xs px-1'; dots.textContent = '…'; pagesWrap.appendChild(dots); }
+      mkBtn(String(totalPages), totalPages);
+    }
+
+    mkBtn('›', Math.min(totalPages, currentQueuePage + 1), { nav: true, disabled: currentQueuePage === totalPages });
+  }
 }
 
 /* =========================================================
@@ -2962,6 +3705,17 @@ function applyRevision(id, outcome = 'good', minutes = null) {
   document.getElementById(id).addEventListener('change', () => { currentPage = 1; renderTable(); });
 });
 
+document.getElementById('sort-due-btn').addEventListener('click', () => {
+  if (sortColumn !== 'due') {
+    sortColumn = 'due';
+    sortDir = 'asc'; // soonest due date first
+  } else {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  }
+  currentPage = 1;
+  renderTable();
+});
+
 /* =========================================================
    BULK ACTIONS BAR
 ========================================================= */
@@ -3089,6 +3843,7 @@ function renderAll() {
   renderHeatmap();
   renderWeakAreas();
   renderProgressChart();
+  renderGoals();
   renderCategoryOptions();
   renderTable();
   renderQueue();
@@ -3218,7 +3973,7 @@ function mkSeed(track, title, link, difficulty, category, intervalDays, notes, c
 ========================================================= */
 let calViewDate = new Date(); // month currently displayed
 calViewDate.setDate(1);
-let calSelectedISO = null;
+let calSelectedISO = todayISO();
 
 function problemsDueOn(iso) {
   return trackScopedProblems().filter(p => p.nextReview && String(p.nextReview).slice(0, 10) === iso);
@@ -3401,6 +4156,8 @@ function loginAs(user) {
   seedIfEmpty();
   showTab('dashboard');
   renderAll();
+  checkGoalPace();
+  checkFreshlyMissedPeriods();
   initSyncForCurrentUser();
 }
 
@@ -3677,7 +4434,7 @@ async function saveDataToSheets() {
     }
 
     const lastModified = Date.now();
-    const data = await apiCall('save', { problems, revisionLog, lastModified });
+    const data = await apiCall('save', { problems, revisionLog, goals, lastModified });
     if (data.status !== 'ok') throw new Error(data.message || 'Save failed');
     lastSyncedRemoteTime = data.lastModified || lastModified;
     setSyncStatusDot('ok');
@@ -3725,6 +4482,14 @@ async function initSyncForCurrentUser() {
     } else {
       problems = (sheetData.problems || []).map(migrateProblem);
       revisionLog = sheetData.revisionLog || [];
+      if (sheetData.goals) {
+        goals = {
+          weekly: { DSA: 0, LLD: 0, HLD: 0, ...(sheetData.goals.weekly || {}) },
+          monthly: { DSA: 0, LLD: 0, HLD: 0, ...(sheetData.goals.monthly || {}) },
+          notify: !!sheetData.goals.notify,
+        };
+        saveGoals();
+      }
       saveProblemsRaw();
       saveRevisionLogRaw();
       backfillRevisionLog();
@@ -3863,6 +4628,14 @@ updateHeaderDatePill();
     new THREE.Color('#06b6d4'), // cyan
     new THREE.Color('#ec4899'), // pink accent
     new THREE.Color('#f8fafc'), // soft white node
+    new THREE.Color('#10b981'), // emerald
+    new THREE.Color('#f59e0b'), // amber
+    new THREE.Color('#ef4444'), // red
+    new THREE.Color('#a855f7'), // purple
+    new THREE.Color('#facc15'), // yellow
+    new THREE.Color('#22d3ee'), // bright cyan
+    new THREE.Color('#fb7185'), // rose
+    new THREE.Color('#34d399'), // mint green
   ];
 
   // ---------- Build several loose "graph clusters" (like small trees/graphs) ----------
@@ -3915,7 +4688,7 @@ updateHeaderDatePill();
         mesh,
         basePos: pos.clone(),
         phase: Math.random() * Math.PI * 2,
-        speed: Math.random() * 0.3 + 0.12,
+        speed: Math.random() * 0.75 + 0.3,
         driftAmp: Math.random() * 0.55 + 0.25,
       };
       allNodes.push(nodeData);
@@ -3940,7 +4713,7 @@ updateHeaderDatePill();
           allEdges.push({
             line, a: clusterNodes[i], b: clusterNodes[j], material: mat,
             phase: Math.random() * Math.PI * 2,
-            speed: Math.random() * 0.5 + 0.25,
+            speed: Math.random() * 1.2 + 0.6,
           });
         }
       }
@@ -3966,19 +4739,19 @@ updateHeaderDatePill();
     rafId = requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
 
-    scene.rotation.y = Math.sin(t * 0.035) * 0.12 + t * 0.015;
-    scene.rotation.x = Math.sin(t * 0.05) * 0.06;
+    scene.rotation.y = Math.sin(t * 0.09) * 0.22 + t * 0.045;
+    scene.rotation.x = Math.sin(t * 0.13) * 0.12;
 
-    camera.position.x += (targetX - camera.position.x) * 0.02;
-    camera.position.y += (-targetY - camera.position.y) * 0.02;
+    camera.position.x += (targetX - camera.position.x) * 0.04;
+    camera.position.y += (-targetY - camera.position.y) * 0.04;
     camera.lookAt(scene.position);
 
     // drift each node around its home position, like a slowly breathing graph
     for (let i = 0; i < allNodes.length; i++) {
       const n = allNodes[i];
-      n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * n.driftAmp * 0.35;
-      n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed * 0.8 + n.phase) * n.driftAmp * 0.35;
-      n.mesh.position.z = n.basePos.z + Math.sin(t * n.speed * 0.6 + n.phase) * n.driftAmp * 0.25;
+      n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * n.driftAmp * 0.55;
+      n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed * 0.8 + n.phase) * n.driftAmp * 0.55;
+      n.mesh.position.z = n.basePos.z + Math.sin(t * n.speed * 0.6 + n.phase) * n.driftAmp * 0.4;
 
       // subtle pulsing "activation" glow, like traversal visiting a node
       const pulse = 0.75 + Math.sin(t * n.speed * 1.4 + n.phase) * 0.25;
