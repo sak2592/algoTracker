@@ -233,8 +233,7 @@
      closer to pfm_v9's header proportions (bigger logo mark, taller
      top/bottom padding) instead of the previous compact Tailwind bar.
      ===================================================================== */
-  .app-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid #1e293b; background: rgba(11,15,25,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-  .app-header::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px; background: linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent); pointer-events: none; }
+  .app-header { position: sticky; top: 0; z-index: 40; background: rgba(11,15,25,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .app-header-inner { position: relative; max-width: 80rem; margin: 0 auto; padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 14px; }
   .app-header-row { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .app-header-row::-webkit-scrollbar { display: none; }
@@ -338,15 +337,15 @@
   .app-header-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; padding: 0 4px; display: flex; align-items: center; justify-content: center; }
   .app-header-badge-cyan { background: #06b6d4; color: #04222b; }
   .app-user-menu { position: relative; }
-  .app-user-btn { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 7px 10px 7px 6px; cursor: pointer; overflow: hidden; z-index: 0; transition: border-color .15s ease; }
+  .app-user-btn { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 0; background: transparent; border: 1px solid transparent; border-radius: 999px; padding: 0; cursor: pointer; overflow: hidden; z-index: 0; transition: border-color .15s ease; }
+  .app-user-btn::before, .app-user-btn::after { content: none; }
   .app-user-btn:hover { background: rgba(255,255,255,0.05); }
   .app-user-btn > * { position: relative; z-index: 2; }
-  .app-user-avatar, .app-user-avatar-fallback { width: 26px; height: 26px; border-radius: 999px; flex-shrink: 0; }
+  .app-user-avatar, .app-user-avatar-fallback { width: 36px; height: 36px; border-radius: 999px; flex-shrink: 0; }
   .app-user-avatar-fallback { background: linear-gradient(135deg, #6366f1, #06b6d4); display: flex; align-items: center; justify-content: center; }
-  .app-user-avatar-fallback svg { width: 18px; height: 18px; color: #fff; }
-  .app-user-name { font-size: 0.78rem; font-weight: 500; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  @media (max-width: 640px) { .app-user-name { display: none; } }
-  .app-user-chevron { width: 18px; height: 18px; color: #94a3b8; }
+  .app-user-avatar-fallback svg { width: 20px; height: 20px; color: #fff; }
+  .app-user-name { display: none; }
+  .app-user-chevron { display: none; }
   .app-user-dropdown { position: fixed; width: 208px; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; box-shadow: 0 12px 32px -16px rgba(0,0,0,0.5); overflow: hidden; z-index: 200; }
   .app-user-dropdown-header { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
   .app-user-dropdown-name { font-size: 0.78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
@@ -888,8 +887,8 @@
       <div id="empty-all" class="hidden flex-col items-center justify-center py-16 px-4 text-center">
         <i data-lucide="folder-open" class="w-14 h-14 text-line2 mb-3"></i>
         <p id="empty-all-title" class="font-medium text-mute">No problems logged yet</p>
-        <p class="text-xs text-mute mt-1 mb-4">Log your first problem to start building your revision schedule.</p>
-        <div class="flex items-center gap-2">
+        <p id="empty-all-subtitle" class="text-xs text-mute mt-1 mb-4">Log your first problem to start building your revision schedule.</p>
+        <div id="empty-all-actions" class="flex items-center gap-2">
           <button data-goto="add" class="bg-brand hover:bg-brand/80 transition text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1.5">
             <i data-lucide="plus" class="w-6 h-6"></i> Add a Problem
           </button>
@@ -1469,15 +1468,15 @@ function isDueWithinWeek(p) {
    track at a time, like separate pages per track.
 ========================================================= */
 const TRACK_VIEW_KEY = 'dsa_notebook_track_view';
-let currentTrack = localStorage.getItem(TRACK_VIEW_KEY) || 'All';
+let currentTrack = null;
 
 function trackScopedProblems() {
+  if (currentTrack === null) return [];
   return currentTrack === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === currentTrack);
 }
 
 function setTrackView(track) {
   currentTrack = track;
-  localStorage.setItem(TRACK_VIEW_KEY, track);
   document.querySelectorAll('.track-view-card[data-track-view]').forEach(btn => {
     const isActive = btn.dataset.trackView === track;
     btn.classList.toggle('active', isActive);
@@ -1567,7 +1566,7 @@ document.querySelectorAll('[data-goto]').forEach(btn => {
 function openAddModal() {
   if (!document.getElementById('edit-id').value) {
     exitEditMode();
-    setTrackUI(currentTrack === 'All' ? 'DSA' : currentTrack);
+    setTrackUI((currentTrack === 'All' || currentTrack === null) ? 'DSA' : currentTrack);
   }
   document.getElementById('add-modal').classList.remove('hidden');
   resetLinkAutofillState();
@@ -2970,7 +2969,15 @@ function renderTable() {
   const scopedCount = trackScopedProblems().length;
   document.getElementById('empty-all').classList.toggle('flex', scopedCount === 0);
   document.getElementById('empty-all').classList.toggle('hidden', scopedCount !== 0);
-  document.getElementById('empty-all-title').textContent = currentTrack === 'All' ? 'No problems logged yet' : `No ${currentTrack} problems logged yet`;
+  if (currentTrack === null) {
+    document.getElementById('empty-all-title').textContent = 'Pick a track to get started';
+    document.getElementById('empty-all-subtitle').textContent = 'Select All Tracks, DSA, LLD or HLD above to see your problems.';
+    document.getElementById('empty-all-actions').classList.add('hidden');
+  } else {
+    document.getElementById('empty-all-title').textContent = currentTrack === 'All' ? 'No problems logged yet' : `No ${currentTrack} problems logged yet`;
+    document.getElementById('empty-all-subtitle').textContent = 'Log your first problem to start building your revision schedule.';
+    document.getElementById('empty-all-actions').classList.remove('hidden');
+  }
   document.getElementById('empty-filtered').classList.toggle('flex', scopedCount > 0 && list.length === 0);
   document.getElementById('empty-filtered').classList.toggle('hidden', !(scopedCount > 0 && list.length === 0));
 
@@ -3886,7 +3893,7 @@ function renderAll() {
   const trackFilterSel = document.getElementById('filter-track');
   if (trackFilterSel) {
     trackFilterSel.disabled = currentTrack !== 'All';
-    trackFilterSel.title = currentTrack === 'All' ? '' : `Already scoped to ${currentTrack} — switch to "All Tracks" to filter by track`;
+    trackFilterSel.title = currentTrack === 'All' ? '' : (currentTrack === null ? 'Select a track above first' : `Already scoped to ${currentTrack} — switch to "All Tracks" to filter by track`);
     trackFilterSel.classList.toggle('opacity-50', currentTrack !== 'All');
     trackFilterSel.classList.toggle('cursor-not-allowed', currentTrack !== 'All');
     if (currentTrack !== 'All') trackFilterSel.value = 'all';
