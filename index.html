@@ -84,14 +84,14 @@
      class token X only (so "bg-surface" won't also match "bg-surface2"),
      while [class*="X/"] separately catches opacity-modifier variants
      like "bg-surface/60" used on a few modals. */
-  [class~="bg-surface"]:not(.track-view-card)  { background: rgba(21,27,43,0.16) !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
-  [class~="bg-surface2"] { background: rgba(30,41,59,0.14)  !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
-  [class~="bg-surface3"]:not(.track-icon) { background: rgba(35,47,69,0.14)  !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
-  [class*="bg-surface/"]  { background: rgba(21,27,43,0.10) !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; }
-  [class*="bg-surface2/"] { background: rgba(30,41,59,0.10) !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; }
-  [class*="bg-surface3/"] { background: rgba(35,47,69,0.10) !important; backdrop-filter: blur(5px) !important; -webkit-backdrop-filter: blur(5px) !important; }
+  [class~="bg-surface"]  { background: transparent !important; }
+  [class~="bg-surface2"] { background: transparent !important; }
+  [class~="bg-surface3"]:not(.track-icon) { background: transparent !important; }
+  [class*="bg-surface/"]  { background: transparent !important; }
+  [class*="bg-surface2/"] { background: transparent !important; }
+  [class*="bg-surface3/"] { background: transparent !important; }
 
-  .stat-card { position: relative; overflow: hidden; background: rgba(22,29,51,0.14); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .stat-card { position: relative; overflow: hidden; background: transparent; border-color: #232a3d !important; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--sc-accent, #6366f1); opacity: .9; }
   .stat-card .stat-icon {
     background: var(--sc-icon-bg, rgba(99,102,241,0.14));
@@ -130,13 +130,13 @@
   .track-opt-btn.active[data-track="DSA"] { border-color: #6366f1; color: #f8fafc; background: rgba(99,102,241,0.14); }
   .track-opt-btn.active[data-track="LLD"] { border-color: #06b6d4; color: #f8fafc; background: rgba(6,182,212,0.14); }
   .track-opt-btn.active[data-track="HLD"] { border-color: #f472b6; color: #f8fafc; background: rgba(244,114,182,0.14); }
-  .track-view-card { will-change: transform; background: rgba(19,26,44,0.18); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+  .track-view-card { will-change: transform; background: transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease; }
   .track-view-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(0,0,0,0.45); }
   .track-view-card .track-accent { opacity: .9; background: var(--tv-accent, #6366f1); }
   .track-view-card .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.14)); color: var(--tv-accent, #6366f1); border: 1px solid rgba(255,255,255,0.06); }
   .track-view-card .track-count { color: var(--tv-accent, #6366f1); }
   .track-view-card { border-color: var(--tv-border, #334155); }
-  .track-view-card.active { background: var(--tv-bg, rgba(35,47,69,0.28)); border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
+  .track-view-card.active { background: transparent; border-color: var(--tv-accent, #6366f1) !important; box-shadow: 0 0 0 2px var(--tv-accent, rgba(99,102,241,0.22)); }
   .track-view-card.track-view-glow { animation: trackGlow .5s ease; }
   @keyframes trackGlow {
     0% { box-shadow: 0 0 0 0 var(--tv-accent, rgba(99,102,241,0.5)); }
@@ -146,18 +146,18 @@
   .track-view-card.active .track-accent { opacity: 1; background: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-icon { background: var(--tv-icon-bg, rgba(99,102,241,0.16)); color: var(--tv-accent, #6366f1); }
   .track-view-card.active .track-count { color: var(--tv-accent, #6366f1); }
-  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: rgba(41,52,76,0.28); --tv-border: #475569; }
-  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: linear-gradient(180deg, rgba(59,130,246,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(59,130,246,0.55); }
-  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: linear-gradient(180deg, rgba(34,211,238,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(34,211,238,0.55); }
-  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: linear-gradient(180deg, rgba(251,143,206,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(251,143,206,0.55); }
-  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: linear-gradient(180deg, rgba(250,204,21,0.10), rgba(30,41,59,0.25)); --tv-border: rgba(250,204,21,0.55); }
-  .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"], .track-view-card.active[data-tab="queue"] { background: var(--tv-bg); }
+  .track-view-card[data-track-view="All"] { --tv-accent: #b0bcd0; --tv-icon-bg: rgba(176,188,208,0.22); --tv-bg: transparent; --tv-border: #475569; }
+  .track-view-card[data-track-view="DSA"] { --tv-accent: #3b82f6; --tv-icon-bg: rgba(59,130,246,0.22); --tv-bg: transparent; --tv-border: rgba(59,130,246,0.55); }
+  .track-view-card[data-track-view="LLD"] { --tv-accent: #22d3ee; --tv-icon-bg: rgba(34,211,238,0.22); --tv-bg: transparent; --tv-border: rgba(34,211,238,0.55); }
+  .track-view-card[data-track-view="HLD"] { --tv-accent: #fb8fce; --tv-icon-bg: rgba(251,143,206,0.22); --tv-bg: transparent; --tv-border: rgba(251,143,206,0.55); }
+  .track-view-card[data-tab="queue"] { --tv-accent: #facc15; --tv-icon-bg: rgba(250,204,21,0.22); --tv-bg: transparent; --tv-border: rgba(250,204,21,0.55); }
+  .track-view-card.active[data-track-view="DSA"], .track-view-card.active[data-track-view="LLD"], .track-view-card.active[data-track-view="HLD"], .track-view-card.active[data-tab="queue"] { background: transparent; }
   .tab-btn { border-color: transparent; color: #94a3b8; }
   .tab-btn[data-tab="calendar"] { color: #f59e0b; }
   .tab-btn[data-tab="calendar"].active { background: rgba(245,158,11,0.14); color: #f59e0b; }
   .tab-btn[data-tab="ai"] { border-color: transparent; background: transparent; color: #06b6d4; }
   .tab-btn[data-tab="ai"].active { border-color: #06b6d4; background: linear-gradient(180deg, rgba(6,182,212,0.14), #1e293b); color: #06b6d4; }
-  .ai-pick-card { background: rgba(19,26,44,0.18); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .ai-pick-card { background: transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
   .btn-nailed {
     background: linear-gradient(135deg, #10b981, #06b6d4);
     color: #04140f;
@@ -338,8 +338,9 @@
   .app-header-badge { position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; padding: 0 4px; display: flex; align-items: center; justify-content: center; }
   .app-header-badge-cyan { background: #06b6d4; color: #04222b; }
   .app-user-menu { position: relative; }
-  .app-user-btn { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; padding: 7px 10px 7px 6px; cursor: pointer; transition: border-color .15s ease; }
-  .app-user-btn:hover { border-color: #334155; }
+  .app-user-btn { position: relative; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 7px 10px 7px 6px; cursor: pointer; overflow: hidden; z-index: 0; transition: border-color .15s ease; }
+  .app-user-btn:hover { background: rgba(255,255,255,0.05); }
+  .app-user-btn > * { position: relative; z-index: 2; }
   .app-user-avatar, .app-user-avatar-fallback { width: 26px; height: 26px; border-radius: 999px; flex-shrink: 0; }
   .app-user-avatar-fallback { background: linear-gradient(135deg, #6366f1, #06b6d4); display: flex; align-items: center; justify-content: center; }
   .app-user-avatar-fallback svg { width: 18px; height: 18px; color: #fff; }
@@ -365,7 +366,7 @@
     --node-color: var(--sc-accent, var(--tv-accent, #6366f1));
     --node-bg: var(--sc-icon-bg, var(--tv-icon-bg, rgba(99,102,241,0.28)));
     border-radius: 18px !important;
-    background-image: linear-gradient(160deg, transparent 40%, var(--node-bg) 140%);
+    background-image: none;
     transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;
     will-change: transform;
   }
@@ -407,8 +408,8 @@
       <div class="flex-1 h-px bg-line"></div>
     </div>
 
-    <button id="guest-login-btn" type="button" class="w-full bg-surface2 hover:bg-surface3 border border-line transition text-ink text-sm font-medium px-4 py-2.5 rounded-lg flex items-center justify-center gap-2">
-      <i data-lucide="user" class="w-6 h-6"></i> Continue as Guest
+    <button id="guest-login-btn" type="button" class="app-btn app-btn-ghost w-full justify-center">
+      <i data-lucide="user"></i> Continue as Guest
     </button>
 
     <p id="login-config-warning" class="hidden text-[11px] text-medium mt-4 text-left bg-medium/10 border border-medium/30 rounded-lg p-2.5">
@@ -459,7 +460,7 @@
       </button>
 
       <div class="app-user-menu">
-        <button id="user-menu-btn" class="app-user-btn">
+        <button id="user-menu-btn" class="app-user-btn app-btn-ghost">
           <img id="user-avatar" src="" class="app-user-avatar hidden" />
           <div id="user-avatar-fallback" class="app-user-avatar-fallback">
             <i data-lucide="user"></i>
