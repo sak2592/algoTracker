@@ -6,7 +6,7 @@
  * WHAT THIS DOES
  * The Algo Tracker web app keeps its data in the browser's
  * localStorage. This script turns a Google Sheet into a real
- * backing store with four tables (tabs):
+ * backing store with five tables (tabs):
  *   - "DSA", "LLD", "HLD"  one row per problem you're tracking,
  *                          split into its own tab per track, each
  *                          including a `revisionCount` column —
@@ -14,6 +14,14 @@
  *                          "Nailed It" / "Struggled" on that problem
  *   - "Revision_log"       one row per individual revision event
  *                          (append-only history, across all tracks)
+ *   - "Goals"              a single row holding your current weekly
+ *                          and monthly targets per track, plus the
+ *                          notify flag. "Missed target" periods are
+ *                          never stored directly — the app recomputes
+ *                          them from these targets against
+ *                          Revision_log — so syncing this row is what
+ *                          makes missed targets follow you across
+ *                          devices/reloads instead of resetting.
  *
  * The app POSTs its local data here on every change (debounced)
  * and on a timer. This script merges it with whatever is already
@@ -28,8 +36,8 @@
  * ------------------------------------------------------------
  * 1. Create a new Google Sheet (or open an existing one you want
  *    to use as the database). Any tab layout is fine — this
- *    script creates/manages its own "DSA", "LLD", "HLD" and
- *    "Revision_log" tabs automatically.
+ *    script creates/manages its own "DSA", "LLD", "HLD",
+ *    "Revision_log" and "Goals" tabs automatically.
  * 2. Extensions > Apps Script. Delete any boilerplate code and
  *    paste this entire file in as Code.gs.
  * 3. (Optional but recommended) Set SHARED_SECRET below to any
@@ -55,7 +63,7 @@
  *
  * You can also run `setupSheets()` once from the Apps Script
  * editor (pick it from the function dropdown, click ▶ Run) to
- * pre-create all four tabs with headers, though the web app will
+ * pre-create all five tabs with headers, though the web app will
  * create them automatically on first request too.
  * ============================================================
  */
@@ -67,6 +75,18 @@ const SHARED_SECRET = ''; // e.g. 'my-secret-123' — leave '' to disable the ch
 const TRACKS = ['DSA', 'LLD', 'HLD'];
 const TRACK_SHEET_NAMES = { DSA: 'DSA', LLD: 'LLD', HLD: 'HLD' };
 const REVISION_SHEET_NAME = 'Revision_log';
+const GOALS_SHEET_NAME = 'Goals';
+
+// Single-row table: one weekly/monthly target per track, plus the notify
+// flag. Missed-target periods themselves are never stored — they're
+// recomputed client-side from these targets against the Revision_log —
+// so persisting the targets here is what makes "missed targets" survive
+// a reload or follow a person to a different device.
+const GOALS_COLUMNS = [
+  'weeklyDSA', 'weeklyLLD', 'weeklyHLD',
+  'monthlyDSA', 'monthlyLLD', 'monthlyHLD',
+  'notify', 'updatedAt'
+];
 
 const PROBLEM_COLUMNS = [
   'id', 'title', 'link', 'track', 'difficulty', 'category', 'company', 'notes',
@@ -99,6 +119,7 @@ function doGet(e) {
         status: 'ok',
         problems: readAllProblems().filter(function (p) { return !p.deletedAt; }),
         revisionLog: readRevisionLog(),
+        goals: readGoals(),
         lastModified: getStoredLastModified(),
       });
     }
@@ -131,11 +152,13 @@ function doPost(e) {
 
     if (action === 'save') {
       const merged = mergeSync(body.problems || [], body.revisionLog || [], body.deletedIds || []);
+      if (body.goals) writeGoals(body.goals);
       return jsonResponse({
         status: 'ok',
         problems: merged.problems,
         revisionLog: merged.revisionLog,
         deletedIds: merged.deletedIds,
+        goals: readGoals(),
         lastModified: merged.lastModified,
       });
     }
@@ -145,16 +168,19 @@ function doPost(e) {
         ok: true,
         problems: readAllProblems().filter(p => !p.deletedAt),
         revisionLog: readRevisionLog(),
+        goals: readGoals(),
       });
     }
 
     if (action === 'sync') {
       const merged = mergeSync(body.problems || [], body.revisionLog || [], body.deletedIds || []);
+      if (body.goals) writeGoals(body.goals);
       return jsonResponse({
         ok: true,
         problems: merged.problems,
         revisionLog: merged.revisionLog,
         deletedIds: merged.deletedIds, // every id ever deleted (app or Sheet) — lets any client drop stale copies
+        goals: readGoals(),
         syncedAt: Date.now(),
       });
     }
@@ -404,6 +430,59 @@ function readRevisionLog() {
   return readRevisionLogRaw(sheet);
 }
 
+// ---- Goals (targets) sheet ---------------------------------------
+// Just one row: the currently-active weekly/monthly targets and the
+// notify flag. There's no per-user merge logic here (unlike problems) —
+// whichever client saves last simply overwrites it, which matches how
+// the app already treats goals locally (a single settings object, not a
+// list of records).
+function getGoalsSheet() {
+  return getOrCreateSheet(GOALS_SHEET_NAME, GOALS_COLUMNS);
+}
+
+function readGoals() {
+  const sheet = getGoalsSheet();
+  const values = sheet.getDataRange().getValues();
+  const defaults = {
+    weekly: { DSA: 0, LLD: 0, HLD: 0 },
+    monthly: { DSA: 0, LLD: 0, HLD: 0 },
+    notify: false,
+  };
+  if (values.length < 2) return defaults; // no row saved yet
+  const headers = values[0] || GOALS_COLUMNS;
+  const row = values[1];
+  const obj = {};
+  headers.forEach(function (h, i) { obj[h] = row[i]; });
+  return {
+    weekly: {
+      DSA: Number(obj.weeklyDSA) || 0,
+      LLD: Number(obj.weeklyLLD) || 0,
+      HLD: Number(obj.weeklyHLD) || 0,
+    },
+    monthly: {
+      DSA: Number(obj.monthlyDSA) || 0,
+      LLD: Number(obj.monthlyLLD) || 0,
+      HLD: Number(obj.monthlyHLD) || 0,
+    },
+    notify: obj.notify === true || obj.notify === 'true' || obj.notify === 'TRUE',
+  };
+}
+
+function writeGoals(goals) {
+  const sheet = getGoalsSheet();
+  const weekly = goals.weekly || {};
+  const monthly = goals.monthly || {};
+  const row = [
+    Number(weekly.DSA) || 0, Number(weekly.LLD) || 0, Number(weekly.HLD) || 0,
+    Number(monthly.DSA) || 0, Number(monthly.LLD) || 0, Number(monthly.HLD) || 0,
+    !!goals.notify, Date.now(),
+  ];
+  sheet.getRange(1, 1, 1, GOALS_COLUMNS.length).setValues([GOALS_COLUMNS]);
+  sheet.getRange(2, 1, 1, GOALS_COLUMNS.length).setValues([row]);
+  sheet.setFrozenRows(1);
+  touchLastModified(); // so other clients' staleness check picks up the new targets too
+}
+
 function appendRevisionLog(sheet, entries) {
   const rows = entries.map(function (e) {
     return REVISION_COLUMNS.map(function (col) {
@@ -436,5 +515,6 @@ function jsonResponse(obj) {
 function setupSheets() {
   TRACKS.forEach(function (track) { getTrackSheet(track); });
   getOrCreateSheet(REVISION_SHEET_NAME, REVISION_COLUMNS);
-  Logger.log('DSA, LLD, HLD and Revision_log sheets are ready.');
+  getGoalsSheet();
+  Logger.log('DSA, LLD, HLD, Revision_log and Goals sheets are ready.');
 }
