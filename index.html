@@ -981,6 +981,12 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
             <datalist id="category-list"></datalist>
           </div>
         </div>
+        <div id="f-pattern-wrap">
+          <label class="text-xs font-medium text-mute mb-1 block">Pattern <span class="text-mute font-normal">(optional)</span></label>
+          <input id="f-pattern" list="pattern-list" type="text" placeholder="e.g. Sliding Window, Two Pointers, Fast &amp; Slow Pointers" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+          <datalist id="pattern-list"></datalist>
+          <p class="text-[11px] text-mute mt-1">The core technique this problem teaches. Saved with the problem, but only shown here in the form — not on the dashboard table.</p>
+        </div>
         <div>
           <label class="text-xs font-medium text-mute mb-1 block">Company / Source <span class="text-mute font-normal">(optional)</span></label>
           <input id="f-company" list="company-list" type="text" placeholder="e.g. Amazon, Meta OA, Google Onsite" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
@@ -2873,6 +2879,7 @@ function renderCategoryOptions() {
   filterSel.value = cats.includes(currentVal) ? currentVal : 'all';
 
   updateCategoryDatalist();
+  updatePatternDatalist();
   renderCompanyOptions();
 }
 
@@ -2895,6 +2902,19 @@ function updateCategoryDatalist() {
   const formTrack = document.getElementById('f-track').value || 'DSA';
   const cats = categoriesForTrack(formTrack);
   document.getElementById('category-list').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+}
+
+// Pattern is DSA-only and intentionally never shown on the dashboard table —
+// it's just an extra bit of metadata captured in the Add/Edit form and synced
+// through to the DSA sheet tab.
+function patternsForTrack(track) {
+  const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
+  return [...new Set(pool.map(p => p.pattern).filter(Boolean))].sort();
+}
+function updatePatternDatalist() {
+  const patterns = patternsForTrack('DSA');
+  const list = document.getElementById('pattern-list');
+  if (list) list.innerHTML = patterns.map(c => `<option value="${escapeHtml(c)}">`).join('');
 }
 
 /* =========================================================
@@ -3482,6 +3502,7 @@ form.addEventListener('submit', (e) => {
   const track = document.getElementById('f-track').value || 'DSA';
   const difficulty = document.getElementById('f-difficulty').value;
   const category = document.getElementById('f-category').value.trim();
+  const pattern = track === 'DSA' ? document.getElementById('f-pattern').value.trim() : '';
   const company = document.getElementById('f-company').value.trim();
   const intervalDays = parseInt(document.getElementById('f-interval').value, 10);
   const notes = document.getElementById('f-notes').value.trim();
@@ -3499,6 +3520,7 @@ form.addEventListener('submit', (e) => {
       p.track = track;
       p.difficulty = difficulty;
       p.category = category;
+      p.pattern = pattern;
       p.company = company;
       p.intervalIndex = intervalIndex;
       p.intervalDays = LADDER[intervalIndex];
@@ -3512,7 +3534,7 @@ form.addEventListener('submit', (e) => {
     const today = todayISO();
     const newProblem = {
       id: uid(),
-      title, link, track, difficulty, category, company, notes, description,
+      title, link, track, difficulty, category, pattern, company, notes, description,
       intervalIndex,
       intervalDays: LADDER[intervalIndex],
       createdAt: today,
@@ -3557,6 +3579,8 @@ function setTrackUI(track) {
   };
   categoryInput.placeholder = placeholders[track] || placeholders.DSA;
   if (typeof updateCategoryDatalist === 'function') updateCategoryDatalist();
+  if (typeof updatePatternDatalist === 'function') updatePatternDatalist();
+  document.getElementById('f-pattern-wrap').classList.toggle('hidden', track !== 'DSA');
 }
 document.querySelectorAll('.track-opt-btn').forEach(btn => {
   btn.addEventListener('click', () => setTrackUI(btn.dataset.track));
@@ -3572,6 +3596,7 @@ function enterEditMode(id) {
   setTrackUI(p.track || 'DSA');
   document.getElementById('f-difficulty').value = p.difficulty;
   document.getElementById('f-category').value = p.category;
+  document.getElementById('f-pattern').value = p.pattern || '';
   document.getElementById('f-company').value = p.company || '';
   document.getElementById('f-interval').value = String(p.intervalDays);
   document.getElementById('f-notes').value = p.notes || '';
