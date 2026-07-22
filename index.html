@@ -578,6 +578,13 @@
         <p id="stat-total" class="font-num text-xl font-bold leading-none mt-1">0</p>
       </div>
     </button>
+    <div id="stat-pattern-card" style="--sc-accent:#a855f7; --sc-icon-bg:rgba(168,85,247,0.16); --sc-border:#a855f7;" class="hidden stat-card stat-card-outline text-left rounded-xl p-3.5 min-h-[92px] shadow-card flex items-center gap-3">
+      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="shapes" class="w-5 h-5"></i></div>
+      <div class="min-w-0">
+        <p class="text-[10px] font-semibold uppercase tracking-wide truncate" style="color:#a855f7;">Patterns</p>
+        <p id="stat-pattern" class="font-num text-xl font-bold leading-none mt-1" style="color:#a855f7;">0</p>
+      </div>
+    </div>
     <button data-stat-filter="Easy" style="--sc-accent:#10b981; --sc-icon-bg:rgba(16,185,129,0.16); --sc-border:#10b981;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
       <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="circle" class="w-5 h-5"></i></div>
       <div class="min-w-0">
@@ -981,17 +988,17 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
             <datalist id="category-list"></datalist>
           </div>
         </div>
-        <div id="f-pattern-wrap">
-          <label class="text-xs font-medium text-mute mb-1 block">Pattern <span class="text-mute font-normal">(optional)</span></label>
-          <input id="f-pattern" list="pattern-list" type="text" placeholder="e.g. Sliding Window, Two Pointers, Fast &amp; Slow Pointers" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
-          <datalist id="pattern-list"></datalist>
-          <p class="text-[11px] text-mute mt-1">The core technique this problem teaches. Saved with the problem, but only shown here in the form — not on the dashboard table.</p>
-        </div>
         <div>
           <label class="text-xs font-medium text-mute mb-1 block">Company / Source <span class="text-mute font-normal">(optional)</span></label>
           <input id="f-company" list="company-list" type="text" placeholder="e.g. Amazon, Meta OA, Google Onsite" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
           <datalist id="company-list"></datalist>
           <p class="text-[11px] text-mute mt-1">Tag which company or source this problem came from, so you can filter your prep by target company later.</p>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-mute mb-1 block">Pattern <span class="text-mute font-normal">(optional)</span></label>
+          <input id="f-pattern" list="pattern-list" type="text" placeholder="e.g. Two Pointers, Sliding Window, Fast &amp; Slow Pointers" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+          <datalist id="pattern-list"></datalist>
+          <p class="text-[11px] text-mute mt-1">Optional — the underlying technique/pattern. Syncs with the Pattern column in your Google Sheet, if you have one.</p>
         </div>
         <div>
           <label class="text-xs font-medium text-mute mb-1 block" id="interval-label">Starting Revision Interval</label>
@@ -1381,6 +1388,7 @@ function migrateProblem(p) {
   }
   p.intervalDays = LADDER[p.intervalIndex];
   if (!p.track) p.track = 'DSA';
+  if (typeof p.pattern !== 'string') p.pattern = p.pattern || '';
   if (typeof p.revisionCount !== 'number') {
     // Legacy data has no explicit counter — approximate it from history.
     p.revisionCount = (p.revisionHistory || []).length > 0 ? (p.revisionHistory.length - 1) : 0;
@@ -2104,6 +2112,20 @@ document.getElementById('ai-pick-count').addEventListener('change', (e) => {
 function renderStats() {
   const scoped = trackScopedProblems();
   document.getElementById('stat-total').textContent = scoped.length;
+
+  // Patterns card — only meaningful (and only shown) when viewing the DSA
+  // track, since "pattern" (e.g. Two Pointers, Sliding Window) is a DSA-only
+  // concept synced in from the optional Pattern column in the Google Sheet.
+  const patternCard = document.getElementById('stat-pattern-card');
+  if (patternCard) {
+    const showPatterns = currentTrack === 'DSA';
+    patternCard.classList.toggle('hidden', !showPatterns);
+    if (showPatterns) {
+      const distinctPatterns = new Set(scoped.map(p => (p.pattern || '').trim()).filter(Boolean));
+      document.getElementById('stat-pattern').textContent = distinctPatterns.size;
+    }
+  }
+
   document.getElementById('stat-easy').textContent = scoped.filter(p => p.difficulty === 'Easy').length;
   document.getElementById('stat-medium').textContent = scoped.filter(p => p.difficulty === 'Medium').length;
   document.getElementById('stat-hard').textContent = scoped.filter(p => p.difficulty === 'Hard').length;
@@ -2871,6 +2893,11 @@ function companiesForTrack(track) {
   return [...new Set(pool.map(p => p.company).filter(Boolean))].sort();
 }
 
+function patternsForTrack(track) {
+  const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
+  return [...new Set(pool.map(p => p.pattern).filter(Boolean))].sort();
+}
+
 function renderCategoryOptions() {
   const cats = categoriesForTrack(currentTrack);
   const filterSel = document.getElementById('filter-tag');
@@ -2879,8 +2906,13 @@ function renderCategoryOptions() {
   filterSel.value = cats.includes(currentVal) ? currentVal : 'all';
 
   updateCategoryDatalist();
-  updatePatternDatalist();
   renderCompanyOptions();
+}
+
+function updatePatternDatalist() {
+  const formTrack = document.getElementById('f-track').value || 'DSA';
+  const pats = patternsForTrack(formTrack);
+  document.getElementById('pattern-list').innerHTML = pats.map(c => `<option value="${escapeHtml(c)}">`).join('');
 }
 
 function renderCompanyOptions() {
@@ -2902,19 +2934,6 @@ function updateCategoryDatalist() {
   const formTrack = document.getElementById('f-track').value || 'DSA';
   const cats = categoriesForTrack(formTrack);
   document.getElementById('category-list').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
-}
-
-// Pattern is DSA-only and intentionally never shown on the dashboard table —
-// it's just an extra bit of metadata captured in the Add/Edit form and synced
-// through to the DSA sheet tab.
-function patternsForTrack(track) {
-  const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
-  return [...new Set(pool.map(p => p.pattern).filter(Boolean))].sort();
-}
-function updatePatternDatalist() {
-  const patterns = patternsForTrack('DSA');
-  const list = document.getElementById('pattern-list');
-  if (list) list.innerHTML = patterns.map(c => `<option value="${escapeHtml(c)}">`).join('');
 }
 
 /* =========================================================
@@ -3502,8 +3521,8 @@ form.addEventListener('submit', (e) => {
   const track = document.getElementById('f-track').value || 'DSA';
   const difficulty = document.getElementById('f-difficulty').value;
   const category = document.getElementById('f-category').value.trim();
-  const pattern = track === 'DSA' ? document.getElementById('f-pattern').value.trim() : '';
   const company = document.getElementById('f-company').value.trim();
+  const pattern = document.getElementById('f-pattern').value.trim();
   const intervalDays = parseInt(document.getElementById('f-interval').value, 10);
   const notes = document.getElementById('f-notes').value.trim();
   const description = document.getElementById('f-description').value.trim();
@@ -3520,8 +3539,8 @@ form.addEventListener('submit', (e) => {
       p.track = track;
       p.difficulty = difficulty;
       p.category = category;
-      p.pattern = pattern;
       p.company = company;
+      p.pattern = pattern;
       p.intervalIndex = intervalIndex;
       p.intervalDays = LADDER[intervalIndex];
       p.notes = notes;
@@ -3534,7 +3553,7 @@ form.addEventListener('submit', (e) => {
     const today = todayISO();
     const newProblem = {
       id: uid(),
-      title, link, track, difficulty, category, pattern, company, notes, description,
+      title, link, track, difficulty, category, company, pattern, notes, description,
       intervalIndex,
       intervalDays: LADDER[intervalIndex],
       createdAt: today,
@@ -3580,7 +3599,6 @@ function setTrackUI(track) {
   categoryInput.placeholder = placeholders[track] || placeholders.DSA;
   if (typeof updateCategoryDatalist === 'function') updateCategoryDatalist();
   if (typeof updatePatternDatalist === 'function') updatePatternDatalist();
-  document.getElementById('f-pattern-wrap').classList.toggle('hidden', track !== 'DSA');
 }
 document.querySelectorAll('.track-opt-btn').forEach(btn => {
   btn.addEventListener('click', () => setTrackUI(btn.dataset.track));
@@ -3596,8 +3614,8 @@ function enterEditMode(id) {
   setTrackUI(p.track || 'DSA');
   document.getElementById('f-difficulty').value = p.difficulty;
   document.getElementById('f-category').value = p.category;
-  document.getElementById('f-pattern').value = p.pattern || '';
   document.getElementById('f-company').value = p.company || '';
+  document.getElementById('f-pattern').value = p.pattern || '';
   document.getElementById('f-interval').value = String(p.intervalDays);
   document.getElementById('f-notes').value = p.notes || '';
   document.getElementById('f-description').value = p.description || '';
