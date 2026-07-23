@@ -354,6 +354,15 @@
   .app-user-dropdown-item svg { width: 18px; height: 18px; }
   .app-user-dropdown-item:hover { background: #1e293b; }
   .app-user-dropdown-item-danger { color: #ef4444; }
+  .patterns-dropdown { position: fixed; width: 320px; max-width: calc(100vw - 16px); max-height: min(420px, calc(100vh - 88px)); overflow-y: auto; background: #151b2b; border: 1px solid #1e293b; border-radius: 10px; box-shadow: 0 12px 32px -16px rgba(0,0,0,0.5); z-index: 200; padding: 14px; }
+  .patterns-dropdown-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .patterns-dropdown-hint { font-size: 0.68rem; color: #94a3b8; margin: 0 0 10px; }
+  .pattern-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #1e293b; background: rgba(168,85,247,0.08); font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: background .15s, border-color .15s; }
+  .pattern-pill:hover { background: rgba(168,85,247,0.18); border-color: #a855f7; }
+  .pattern-pill.active { background: rgba(168,85,247,0.28); border-color: #a855f7; }
+  .pattern-pill-count { color: #94a3b8; font-weight: 400; }
+  #patterns-panel-body.hidden { display: none; }
+  #patterns-panel-chevron.rotated { transform: rotate(-90deg); }
   .bg3d-theme-item.active { color: #06b6d4; }
   .bg3d-theme-item.active svg { color: #06b6d4; }
 
@@ -570,7 +579,7 @@
   </section>
 
   <!-- ===================== STATS DASHBOARD ===================== -->
-  <section class="grid grid-cols-2 md:grid-cols-6 gap-3">
+  <section id="stats-grid" class="grid grid-cols-2 md:grid-cols-6 gap-3">
     <button data-stat-filter="all" style="--sc-accent:#6366f1; --sc-icon-bg:rgba(99,102,241,0.16); --sc-border:#6366f1;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
       <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="database" class="w-5 h-5"></i></div>
       <div class="min-w-0">
@@ -578,13 +587,6 @@
         <p id="stat-total" class="font-num text-xl font-bold leading-none mt-1">0</p>
       </div>
     </button>
-    <div id="stat-pattern-card" style="--sc-accent:#a855f7; --sc-icon-bg:rgba(168,85,247,0.16); --sc-border:#a855f7;" class="hidden stat-card stat-card-outline text-left rounded-xl p-3.5 min-h-[92px] shadow-card flex items-center gap-3">
-      <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="shapes" class="w-5 h-5"></i></div>
-      <div class="min-w-0">
-        <p class="text-[10px] font-semibold uppercase tracking-wide truncate" style="color:#a855f7;">Patterns</p>
-        <p id="stat-pattern" class="font-num text-xl font-bold leading-none mt-1" style="color:#a855f7;">0</p>
-      </div>
-    </div>
     <button data-stat-filter="Easy" style="--sc-accent:#10b981; --sc-icon-bg:rgba(16,185,129,0.16); --sc-border:#10b981;" class="stat-card text-left border border-line rounded-xl p-3.5 min-h-[92px] shadow-card transition cursor-pointer flex items-center gap-3">
       <div class="stat-icon w-10 h-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="circle" class="w-5 h-5"></i></div>
       <div class="min-w-0">
@@ -792,6 +794,17 @@
     </div>
   </div>
 
+  <!-- ===================== DROPDOWN: PATTERNS ===================== -->
+  <div id="patterns-modal" class="hidden fade-in patterns-dropdown">
+    <div class="patterns-dropdown-header">
+      <i data-lucide="shapes" class="w-5 h-5" style="color:#a855f7;"></i>
+      <h2 class="font-semibold text-sm" style="margin:0;">Patterns</h2>
+    </div>
+    <p class="patterns-dropdown-hint">Tap a pattern to filter your DSA problems down to just that technique.</p>
+    <div id="patterns-modal-list" class="space-y-1.5"></div>
+    <p id="patterns-modal-empty" class="hidden text-xs text-mute py-2">No patterns tagged yet — add one from the Pattern field when logging a problem.</p>
+  </div>
+
   <!-- ===================== TAB: ALL PROBLEMS ===================== -->
   <section id="tab-dashboard" class="space-y-4">
     <div class="bg-surface border border-line rounded-xl p-4">
@@ -826,6 +839,30 @@
             <option value="ok">Completed</option>
           </select>
         </div>
+      </div>
+      <div id="pattern-filter-chip" class="hidden items-center gap-1.5 mt-3">
+        <span class="text-xs text-mute">Pattern:</span>
+        <span class="inline-flex items-center gap-1.5 bg-[rgba(168,85,247,0.14)] text-[#a855f7] text-xs font-medium pl-2.5 pr-1.5 py-1 rounded-full">
+          <span id="pattern-filter-chip-label"></span>
+          <button id="pattern-filter-chip-clear" type="button" class="hover:opacity-70 transition" title="Clear pattern filter">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <div id="patterns-panel" class="bg-surface border border-line rounded-xl p-4">
+      <button type="button" id="patterns-panel-toggle" class="w-full flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          <i data-lucide="shapes" class="w-5 h-5" style="color:#a855f7;"></i>
+          <span class="font-semibold text-sm">Patterns</span>
+          <span id="patterns-panel-count" class="text-xs text-mute"></span>
+        </span>
+        <i data-lucide="chevron-down" id="patterns-panel-chevron" class="w-4 h-4 text-mute transition-transform"></i>
+      </button>
+      <div id="patterns-panel-body" class="mt-3">
+        <div id="patterns-panel-list" class="flex flex-wrap gap-2"></div>
+        <p id="patterns-panel-empty" class="hidden text-xs text-mute py-1">No patterns tagged yet — add one from the Pattern field when logging a problem.</p>
       </div>
     </div>
 
@@ -1484,6 +1521,12 @@ function isDueWithinWeek(p) {
 const TRACK_VIEW_KEY = 'dsa_notebook_track_view';
 let currentTrack = null;
 
+// 'all' = no pattern filter active. Otherwise holds the exact pattern string
+// (e.g. "Sliding Window") picked from the Patterns modal; reset to 'all'
+// whenever the track view changes or a main stat card is clicked, so it
+// never silently keeps filtering after the user moves on.
+let patternFilterValue = 'all';
+
 function trackScopedProblems() {
   if (currentTrack === null) return [];
   return currentTrack === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === currentTrack);
@@ -1491,6 +1534,7 @@ function trackScopedProblems() {
 
 function setTrackView(track) {
   currentTrack = track;
+  clearPatternFilter();
   document.querySelectorAll('.track-view-card[data-track-view]').forEach(btn => {
     const isActive = btn.dataset.trackView === track;
     btn.classList.toggle('active', isActive);
@@ -2113,18 +2157,13 @@ function renderStats() {
   const scoped = trackScopedProblems();
   document.getElementById('stat-total').textContent = scoped.length;
 
-  // Patterns card — only meaningful (and only shown) when viewing the DSA
-  // track, since "pattern" (e.g. Two Pointers, Sliding Window) is a DSA-only
-  // concept synced in from the optional Pattern column in the Google Sheet.
-  const patternCard = document.getElementById('stat-pattern-card');
-  if (patternCard) {
-    const showPatterns = currentTrack === 'DSA';
-    patternCard.classList.toggle('hidden', !showPatterns);
-    if (showPatterns) {
-      const distinctPatterns = new Set(scoped.map(p => (p.pattern || '').trim()).filter(Boolean));
-      document.getElementById('stat-pattern').textContent = distinctPatterns.size;
-    }
-  }
+  // The persistent Patterns panel (below the stats grid) is still shown
+  // only on the DSA track, since "pattern" (e.g. Two Pointers, Sliding
+  // Window) is a DSA-only concept synced in from the optional Pattern
+  // column in the Google Sheet. The old Patterns stat card next to Total
+  // Problems has been removed.
+  const patternsPanel = document.getElementById('patterns-panel');
+  if (patternsPanel) patternsPanel.classList.toggle('hidden', currentTrack !== 'DSA');
 
   document.getElementById('stat-easy').textContent = scoped.filter(p => p.difficulty === 'Easy').length;
   document.getElementById('stat-medium').textContent = scoped.filter(p => p.difficulty === 'Medium').length;
@@ -2679,6 +2718,114 @@ function closeMissedTargetsModal() {
   document.getElementById('missed-targets-modal').classList.add('hidden');
 }
 
+/* =========================================================
+   MODAL: PATTERNS
+========================================================= */
+// Lists every distinct pattern tagged on DSA problems (e.g. "Sliding
+// Window", "Two Pointers"), each with a solved/total count, pulled straight
+// from the same `problems` data that's synced in from the Google Sheet.
+// Tapping one filters the dashboard down to just that pattern.
+function renderPatternsModal() {
+  const list = document.getElementById('patterns-modal-list');
+  const empty = document.getElementById('patterns-modal-empty');
+  const pats = patternsForTrack('DSA');
+
+  if (pats.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  list.classList.remove('hidden');
+  empty.classList.add('hidden');
+  list.innerHTML = pats.map(pattern => {
+    const inPattern = problems.filter(p => (p.track || 'DSA') === 'DSA' && (p.pattern || '').trim() === pattern);
+    const solved = inPattern.filter(p => !isDue(p)).length;
+    return `
+      <button type="button" data-pattern="${escapeHtml(pattern)}"
+        class="pattern-row w-full flex items-center justify-between gap-3 text-left px-3 py-2.5 rounded-lg border border-line hover:border-line2 hover:bg-surface2 transition">
+        <span class="text-sm font-medium truncate">${escapeHtml(pattern)}</span>
+        <span class="text-xs text-mute shrink-0">${solved}/${inPattern.length} solved</span>
+      </button>`;
+  }).join('');
+
+  list.querySelectorAll('[data-pattern]').forEach(btn => {
+    btn.addEventListener('click', () => applyPatternFilter(btn.dataset.pattern));
+  });
+}
+function closePatternsModal() {
+  document.getElementById('patterns-modal').classList.add('hidden');
+}
+
+/* =========================================================
+   PERSISTENT PATTERNS PANEL (always visible on the dashboard)
+========================================================= */
+function renderPatternsPanel() {
+  const list = document.getElementById('patterns-panel-list');
+  const empty = document.getElementById('patterns-panel-empty');
+  const countLabel = document.getElementById('patterns-panel-count');
+  if (!list) return;
+  const pats = patternsForTrack('DSA');
+
+  countLabel.textContent = pats.length ? `(${pats.length})` : '';
+
+  if (pats.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  list.classList.remove('hidden');
+  empty.classList.add('hidden');
+  list.innerHTML = pats.map(pattern => {
+    const inPattern = problems.filter(p => (p.track || 'DSA') === 'DSA' && (p.pattern || '').trim() === pattern);
+    const solved = inPattern.filter(p => !isDue(p)).length;
+    const active = patternFilterValue === pattern;
+    return `
+      <button type="button" data-pattern="${escapeHtml(pattern)}"
+        class="pattern-pill${active ? ' active' : ''}">
+        <span>${escapeHtml(pattern)}</span>
+        <span class="pattern-pill-count">${solved}/${inPattern.length}</span>
+      </button>`;
+  }).join('');
+
+  list.querySelectorAll('[data-pattern]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pattern = btn.dataset.pattern;
+      if (patternFilterValue === pattern) {
+        clearPatternFilter();
+      } else {
+        applyPatternFilter(pattern);
+      }
+    });
+  });
+}
+
+// Sets the pattern filter, reflects it in the chip, jumps to the dashboard
+// table filtered to just that pattern, and closes the modal.
+function applyPatternFilter(pattern) {
+  patternFilterValue = pattern;
+  const chip = document.getElementById('pattern-filter-chip');
+  chip.classList.remove('hidden');
+  chip.classList.add('flex');
+  document.getElementById('pattern-filter-chip-label').textContent = pattern;
+
+  currentPage = 1;
+  closePatternsModal();
+  showTab('dashboard');
+  renderTable();
+}
+function clearPatternFilter() {
+  patternFilterValue = 'all';
+  const chip = document.getElementById('pattern-filter-chip');
+  chip.classList.add('hidden');
+  chip.classList.remove('flex');
+  currentPage = 1;
+  renderTable();
+}
+
 // Fires once per newly-closed period (not on every render) so a person
 // finds out, right after a week/month ends, that they came up short —
 // without repeating the same notice on every subsequent load.
@@ -2820,6 +2967,27 @@ document.getElementById('missed-targets-modal').addEventListener('click', (e) =>
   if (e.target.id === 'missed-targets-modal') closeMissedTargetsModal();
 });
 
+document.getElementById('patterns-modal').addEventListener('click', (e) => e.stopPropagation());
+document.addEventListener('click', closePatternsModal);
+window.addEventListener('resize', closePatternsModal);
+document.getElementById('pattern-filter-chip-clear').addEventListener('click', clearPatternFilter);
+
+(function initPatternsPanelToggle() {
+  const body = document.getElementById('patterns-panel-body');
+  const chevron = document.getElementById('patterns-panel-chevron');
+  const toggleBtn = document.getElementById('patterns-panel-toggle');
+  const collapsed = localStorage.getItem('patternsPanelCollapsed') === 'true';
+  if (collapsed) {
+    body.classList.add('hidden');
+    chevron.classList.add('rotated');
+  }
+  toggleBtn.addEventListener('click', () => {
+    const nowHidden = body.classList.toggle('hidden');
+    chevron.classList.toggle('rotated', nowHidden);
+    localStorage.setItem('patternsPanelCollapsed', nowHidden ? 'true' : 'false');
+  });
+})();
+
 document.getElementById('goal-modal-close').addEventListener('click', closeGoalModal);
 document.getElementById('goal-modal-cancel').addEventListener('click', closeGoalModal);
 document.getElementById('goal-modal').addEventListener('click', (e) => {
@@ -2959,6 +3127,7 @@ function getFilteredProblems() {
     .filter(p => diff === 'all' || p.difficulty === diff)
     .filter(p => tag === 'all' || p.category === tag)
     .filter(p => company === 'all' || p.company === company)
+    .filter(p => patternFilterValue === 'all' || (p.pattern || '').trim() === patternFilterValue)
     .filter(p => {
       if (status === 'all') return true;
       if (status === 'due') return isDue(p);
@@ -2996,6 +3165,7 @@ let selectedIds = new Set();
 let currentPageIds = [];
 
 function renderTable() {
+  renderPatternsPanel();
   const tbody = document.getElementById('problems-tbody');
   const list = getFilteredProblems();
   tbody.innerHTML = '';
@@ -3906,6 +4076,9 @@ document.querySelectorAll('[data-stat-filter]').forEach(card => {
 
     searchInput.value = '';
     currentPage = 1;
+    patternFilterValue = 'all';
+    document.getElementById('pattern-filter-chip').classList.add('hidden');
+    document.getElementById('pattern-filter-chip').classList.remove('flex');
 
     if (kind === 'all') {
       diffSel.value = 'all';
