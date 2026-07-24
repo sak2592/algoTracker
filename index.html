@@ -1879,9 +1879,15 @@ function trackBadge(track) {
 }
 
 // Deterministic color per category name (e.g. every "DP" badge, across every
-// problem and every view, always gets the same hue) — hash the string to an
-// index into a fixed palette rather than assigning colors by insertion order,
-// so the mapping stays stable even as categories are added/removed/filtered.
+// problem and every view, always gets the same hue). Colors are assigned by
+// sorting every distinct category currently in use and walking them through
+// a fixed palette in order — that guarantees two different categories never
+// share a color (as long as there are <= palette.length of them), unlike a
+// plain hash-mod-N approach which can collide (e.g. "Array" and "String"
+// hashing to the same bucket). rebuildCategoryColorMap() is called from
+// renderAll() any time the problem set changes, so the mapping stays fresh;
+// categoryColorClasses() also lazily rebuilds if it sees an unmapped key so
+// it's safe to call even before the first rebuild.
 const CATEGORY_COLOR_CLASSES = [
   'bg-brand/10 text-brand',
   'bg-brand-2/10 text-brand-2',
@@ -1895,12 +1901,27 @@ const CATEGORY_COLOR_CLASSES = [
   'bg-lime-400/10 text-lime-400',
   'bg-fuchsia-400/10 text-fuchsia-400',
   'bg-teal-400/10 text-teal-400',
+  'bg-cyan-400/10 text-cyan-400',
+  'bg-indigo-400/10 text-indigo-400',
+  'bg-red-400/10 text-red-400',
+  'bg-yellow-400/10 text-yellow-400',
+  'bg-purple-400/10 text-purple-400',
+  'bg-green-400/10 text-green-400',
+  'bg-blue-400/10 text-blue-400',
+  'bg-stone-400/10 text-stone-400',
 ];
+let categoryColorMap = {};
+function rebuildCategoryColorMap() {
+  const cats = [...new Set((typeof problems !== 'undefined' ? problems : []).map(p => (p.category || 'Uncategorized').trim()))]
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  const map = {};
+  cats.forEach((c, i) => { map[c.toLowerCase()] = CATEGORY_COLOR_CLASSES[i % CATEGORY_COLOR_CLASSES.length]; });
+  categoryColorMap = map;
+}
 function categoryColorClasses(category) {
   const key = (category || 'Uncategorized').trim().toLowerCase();
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return CATEGORY_COLOR_CLASSES[hash % CATEGORY_COLOR_CLASSES.length];
+  if (!(key in categoryColorMap)) rebuildCategoryColorMap();
+  return categoryColorMap[key] || CATEGORY_COLOR_CLASSES[0];
 }
 function categoryBadge(category) {
   if (!category) return '';
@@ -3728,7 +3749,11 @@ form.addEventListener('submit', (e) => {
       intervalDays: LADDER[intervalIndex],
       createdAt: today,
       lastRevised: today,
-      nextReview: addDaysISO(today, LADDER[intervalIndex]),
+      // New problems start life as "Needs Revision" right away — nextReview
+      // is set to today (not today + interval) so isDue() is true the
+      // moment they're logged. The chosen interval still applies once the
+      // problem is revised the first time (see the level-up logic).
+      nextReview: today,
       revisionHistory: [today],
       revisionCount: 0,
       updatedAt: Date.now(),
@@ -4103,6 +4128,7 @@ document.querySelectorAll('[data-stat-filter]').forEach(card => {
    MASTER RENDER
 ========================================================= */
 function renderAll() {
+  rebuildCategoryColorMap();
   document.querySelectorAll('.track-view-card[data-track-view]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.trackView === currentTrack);
   });
