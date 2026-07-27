@@ -1217,7 +1217,7 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
 
     <label class="flex items-center gap-2 text-xs text-mute mb-4">
       <input id="sync-auto-input" type="checkbox" class="w-4 h-4" />
-      Auto-sync every 2 minutes and after every change
+      Auto-sync after every change
     </label>
 
     <p id="sync-last-status" class="text-[11px] text-mute mb-4">Not synced yet.</p>
@@ -4793,8 +4793,12 @@ function scheduleSync() {
 
 function startAutoSync() {
   stopAutoSync();
-  if (!syncConfig.url || !syncConfig.auto) return;
-  autoSyncInterval = setInterval(() => syncNow(), 2 * 60 * 1000);
+  // Periodic "every 2 minutes" polling intentionally disabled — it used to
+  // fire syncNow() on a timer regardless of whether any data had actually
+  // changed, which flipped the status pill through busy -> ok every 2
+  // minutes and looked like the connection was dropping/reconnecting.
+  // Syncing now happens only when scheduleSync() is triggered by a real
+  // local change (see the 1.5s debounce below).
 }
 function stopAutoSync() {
   if (autoSyncInterval) clearInterval(autoSyncInterval);
