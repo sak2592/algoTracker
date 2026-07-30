@@ -2761,7 +2761,7 @@ function renderPatternsModal() {
   list.classList.remove('hidden');
   empty.classList.add('hidden');
   list.innerHTML = pats.map(pattern => {
-    const inPattern = problems.filter(p => (p.track || 'DSA') === 'DSA' && (p.pattern || '').trim() === pattern);
+    const inPattern = problems.filter(p => (p.track || 'DSA') === 'DSA' && splitPatterns(p.pattern).includes(pattern));
     const solved = inPattern.filter(p => !isDue(p)).length;
     return `
       <button type="button" data-pattern="${escapeHtml(pattern)}"
@@ -2801,7 +2801,7 @@ function renderPatternsPanel() {
   list.classList.remove('hidden');
   empty.classList.add('hidden');
   list.innerHTML = pats.map(pattern => {
-    const inPattern = problems.filter(p => (p.track || 'DSA') === 'DSA' && (p.pattern || '').trim() === pattern);
+    const inPattern = problems.filter(p => (p.track || 'DSA') === 'DSA' && splitPatterns(p.pattern).includes(pattern));
     const solved = inPattern.filter(p => !isDue(p)).length;
     const active = patternFilterValue === pattern;
     return `
@@ -3082,9 +3082,21 @@ function companiesForTrack(track) {
   return [...new Set(pool.map(p => p.company).filter(Boolean))].sort();
 }
 
+// A problem's Pattern field can hold more than one technique at once
+// (e.g. "Sliding Window, Two Pointers" when a problem genuinely fits both).
+// splitPatterns() breaks that single string into its individual pattern
+// names so each one can be listed/filtered/counted on its own, instead of
+// the combo being treated as one distinct pattern.
+function splitPatterns(patternStr) {
+  return (patternStr || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
 function patternsForTrack(track) {
   const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
-  return [...new Set(pool.map(p => p.pattern).filter(Boolean))].sort();
+  return [...new Set(pool.flatMap(p => splitPatterns(p.pattern)))].sort();
 }
 
 function renderCategoryOptions() {
@@ -3148,7 +3160,7 @@ function getFilteredProblems() {
     .filter(p => diff === 'all' || p.difficulty === diff)
     .filter(p => tag === 'all' || p.category === tag)
     .filter(p => company === 'all' || p.company === company)
-    .filter(p => patternFilterValue === 'all' || (p.pattern || '').trim() === patternFilterValue)
+    .filter(p => patternFilterValue === 'all' || splitPatterns(p.pattern).includes(patternFilterValue))
     .filter(p => {
       if (status === 'all') return true;
       if (status === 'due') return isDue(p);
