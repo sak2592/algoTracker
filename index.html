@@ -1173,12 +1173,12 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
 
 <!-- ===================== EDIT NOTE PREVIEW MODAL (view notes) ===================== -->
 <div id="notes-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4">
-  <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl max-w-lg w-full p-5 fade-in">
-    <div class="flex items-center justify-between mb-3">
+  <div class="bg-surface/60 backdrop-blur-xl border border-line rounded-xl max-w-3xl w-full p-6 fade-in">
+    <div class="flex items-center justify-between mb-4">
       <h3 id="notes-modal-title" class="font-semibold text-sm"></h3>
       <button id="notes-modal-close" class="text-mute hover:text-ink"><i data-lucide="x" class="w-6 h-6"></i></button>
     </div>
-    <p id="notes-modal-body" class="text-sm text-mute whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto"></p>
+    <div id="notes-modal-body" class="space-y-6 max-h-[75vh] overflow-y-auto"></div>
   </div>
 </div>
 
@@ -3579,11 +3579,88 @@ function renderQueuePagination(totalItems, totalPages) {
 /* =========================================================
    NOTES MODAL
 ========================================================= */
+function isJavaCode(lang, code) {
+  if (lang && lang.toLowerCase() === 'java') return true;
+  if (lang) return false; // an explicit non-java language tag overrides the heuristic
+  return /\bpublic\s+(static\s+)?(class|void|final)\b|\bSystem\.out\.print(ln)?\(|\bpublic\s+class\s+\w+/.test(code);
+}
+
+function highlightJavaCode(code) {
+  const pattern = /(\/\/.*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|(@\w+)|\b(public|private|protected|class|interface|extends|implements|static|final|void|int|long|double|float|boolean|char|byte|short|String|new|return|if|else|for|while|do|switch|case|break|continue|try|catch|finally|throw|throws|import|package|this|super|null|true|false|enum|abstract|synchronized|volatile|transient|instanceof|default|record|var)\b|\b(\d+\.?\d*[fFdDlL]?)\b/g;
+  let out = '';
+  let lastIndex = 0;
+  let m;
+  while ((m = pattern.exec(code)) !== null) {
+    out += escapeHtml(code.slice(lastIndex, m.index));
+    if (m[1]) out += `<span class="text-emerald-400/80">${escapeHtml(m[1])}</span>`;
+    else if (m[2] || m[3]) out += `<span class="text-amber-300">${escapeHtml(m[2] || m[3])}</span>`;
+    else if (m[4]) out += `<span class="text-yellow-300">${escapeHtml(m[4])}</span>`;
+    else if (m[5]) out += `<span class="text-fuchsia-400">${escapeHtml(m[5])}</span>`;
+    else if (m[6]) out += `<span class="text-sky-300">${escapeHtml(m[6])}</span>`;
+    lastIndex = pattern.lastIndex;
+  }
+  out += escapeHtml(code.slice(lastIndex));
+  return out;
+}
+
 function openNotesModal(id) {
   const p = problems.find(x => x.id === id);
   if (!p) return;
   document.getElementById('notes-modal-title').textContent = p.title;
-  document.getElementById('notes-modal-body').textContent = p.notes || 'No notes added.';
+  const body = document.getElementById('notes-modal-body');
+  const raw = (p.notes || '').trim();
+
+  if (!raw) {
+    body.innerHTML = `<p class="text-sm text-mute italic">No notes added yet.</p>`;
+  } else {
+    // Pull every fenced ```code``` block out of the notes, wherever it
+    // appears, and merge them into a single Code section — the rest of
+    // the text (the reasoning/approach) is rendered as its own section.
+    const codeBlocks = []; // { lang, code }
+    const approachText = raw.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+      codeBlocks.push({ lang: lang || '', code: code.replace(/\n+$/, '') });
+      return '';
+    }).trim();
+
+    let html = '';
+    if (approachText) {
+      html += `
+        <div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-mute mb-2">Approach</h4>
+          <p class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${escapeHtml(approachText)}</p>
+        </div>`;
+    }
+    if (codeBlocks.length) {
+      const rawCombined = codeBlocks.map(b => b.code).join('\n\n');
+      const renderedCombined = codeBlocks.map(b => isJavaCode(b.lang, b.code) ? highlightJavaCode(b.code) : escapeHtml(b.code)).join('\n\n');
+      html += `
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-mute">Code</h4>
+            <button data-copy-code class="text-[11px] font-medium text-mute hover:text-ink flex items-center gap-1 transition"><i data-lucide="copy" class="w-4 h-4"></i>Copy</button>
+          </div>
+          <pre class="font-num text-[13px] leading-relaxed text-mute bg-black/40 border border-line rounded-xl p-4 overflow-x-auto whitespace-pre"><code>${renderedCombined}</code></pre>
+        </div>`;
+    }
+    body.innerHTML = html || `<p class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${escapeHtml(raw)}</p>`;
+
+    const copyBtn = body.querySelector('[data-copy-code]');
+    if (copyBtn) {
+      const rawCombined = codeBlocks.map(b => b.code).join('\n\n');
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(rawCombined).then(() => {
+          copyBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i>Copied`;
+          if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+          setTimeout(() => {
+            copyBtn.innerHTML = `<i data-lucide="copy" class="w-4 h-4"></i>Copy`;
+            if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+          }, 1500);
+        });
+      });
+    }
+  }
+
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
   const modal = document.getElementById('notes-modal');
   modal.classList.remove('hidden');
   modal.classList.add('flex');
