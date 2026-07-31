@@ -361,6 +361,11 @@
   .pattern-pill:hover { background: rgba(168,85,247,0.18); border-color: #a855f7; }
   .pattern-pill.active { background: rgba(168,85,247,0.28); border-color: #a855f7; }
   .pattern-pill-count { color: #94a3b8; font-weight: 400; }
+  .company-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #1e293b; background: rgba(96,165,250,0.08); font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: background .15s, border-color .15s; }
+  .company-pill:hover { background: rgba(96,165,250,0.18); border-color: #60a5fa; }
+  .company-pill.active { background: rgba(96,165,250,0.28); border-color: #60a5fa; }
+  .company-pill-count { color: #94a3b8; font-weight: 400; }
+  #companies-panel-chevron.rotated { transform: rotate(-90deg); }
   #patterns-panel-body.hidden { display: none; }
   #patterns-panel-chevron.rotated { transform: rotate(-90deg); }
   .bg3d-theme-item.active { color: #06b6d4; }
@@ -830,9 +835,6 @@
           <select id="filter-tag" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
             <option value="all">All Tags</option>
           </select>
-          <select id="filter-company" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
-            <option value="all">All Companies</option>
-          </select>
           <select id="filter-status" class="bg-surface2 border border-line rounded-lg px-3 py-2 text-sm text-mute">
             <option value="all">All Statuses</option>
             <option value="due">Needs Revision</option>
@@ -848,6 +850,30 @@
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
           </button>
         </span>
+      </div>
+      <div id="company-filter-chip" class="hidden items-center gap-1.5 mt-3">
+        <span class="text-xs text-mute">Company:</span>
+        <span class="inline-flex items-center gap-1.5 bg-[rgba(96,165,250,0.14)] text-[#60a5fa] text-xs font-medium pl-2.5 pr-1.5 py-1 rounded-full">
+          <span id="company-filter-chip-label"></span>
+          <button id="company-filter-chip-clear" type="button" class="hover:opacity-70 transition" title="Clear company filter">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <div id="companies-panel" class="bg-surface border border-line rounded-xl p-4">
+      <button type="button" id="companies-panel-toggle" class="w-full flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          <i data-lucide="building-2" class="w-5 h-5" style="color:#60a5fa;"></i>
+          <span class="font-semibold text-sm">Companies</span>
+          <span id="companies-panel-count" class="text-xs text-mute"></span>
+        </span>
+        <i data-lucide="chevron-down" id="companies-panel-chevron" class="w-4 h-4 text-mute transition-transform"></i>
+      </button>
+      <div id="companies-panel-body" class="mt-3">
+        <div id="companies-panel-list" class="flex flex-wrap gap-2"></div>
+        <p id="companies-panel-empty" class="hidden text-xs text-mute py-1">No companies tagged yet — add one from the Company field when logging a problem.</p>
       </div>
     </div>
 
@@ -889,7 +915,7 @@
 
     <div class="bg-surface border border-line rounded-xl overflow-hidden">
       <div class="overflow-x-auto overflow-y-auto max-h-[65vh]">
-        <table class="w-full min-w-[1310px] text-sm table-fixed">
+        <table class="w-full min-w-[1160px] text-sm table-fixed">
           <colgroup>
             <col style="width:40px">
             <col style="width:140px">
@@ -897,7 +923,6 @@
             <col style="width:260px">
             <col style="width:100px">
             <col style="width:110px">
-            <col style="width:150px">
             <col style="width:110px">
             <col style="width:90px">
             <col style="width:116px">
@@ -913,7 +938,6 @@
               <th class="text-left font-medium px-4 py-3">Title</th>
               <th class="text-left font-medium px-4 py-3">Difficulty</th>
               <th class="text-left font-medium px-3 py-3">Category</th>
-              <th class="text-left font-medium px-3 py-3">Company</th>
               <th class="text-left font-medium px-4 py-3 whitespace-nowrap">Last Revised</th>
               <th class="text-center font-medium px-2 py-3" title="Number of times marked revised">Revisions</th>
               <th class="text-left font-medium pl-4 pr-4 py-3">
@@ -1527,6 +1551,10 @@ let currentTrack = null;
 // never silently keeps filtering after the user moves on.
 let patternFilterValue = 'all';
 
+// Same idea as patternFilterValue, but for the Companies panel — 'all' or
+// an exact company string (e.g. "Amazon") picked from the Companies panel.
+let companyFilterValue = 'all';
+
 function trackScopedProblems() {
   if (currentTrack === null) return [];
   return currentTrack === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === currentTrack);
@@ -1535,6 +1563,7 @@ function trackScopedProblems() {
 function setTrackView(track) {
   currentTrack = track;
   clearPatternFilter();
+  clearCompanyFilter();
   document.querySelectorAll('.track-view-card[data-track-view]').forEach(btn => {
     const isActive = btn.dataset.trackView === track;
     btn.classList.toggle('active', isActive);
@@ -2240,7 +2269,7 @@ function renderHeatmap() {
     const c = counts[d] || 0;
     const intensity = c === 0 ? 0 : Math.ceil((c / max) * 4);
     const shades = [
-      'bg-surface2 border border-line',
+      'bg-brand/10 border border-brand/25',
       'bg-teal-500/40 border border-teal-400/50',
       'bg-brand-2/60 border border-brand-2/70',
       'bg-amber-500/70 border border-amber-400/70',
@@ -2847,6 +2876,76 @@ function clearPatternFilter() {
   renderTable();
 }
 
+/* =========================================================
+   PERSISTENT COMPANIES PANEL (always visible on the dashboard)
+   Same idea as the Patterns panel above, but for the Company /
+   Source field — and not limited to DSA, since a company/source
+   tag is just as relevant for LLD and HLD problems.
+========================================================= */
+function renderCompaniesPanel() {
+  const list = document.getElementById('companies-panel-list');
+  const empty = document.getElementById('companies-panel-empty');
+  const countLabel = document.getElementById('companies-panel-count');
+  if (!list) return;
+  const companies = companiesForTrack(currentTrack || 'All');
+
+  countLabel.textContent = companies.length ? `(${companies.length})` : '';
+
+  if (companies.length === 0) {
+    list.innerHTML = '';
+    list.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  list.classList.remove('hidden');
+  empty.classList.add('hidden');
+  list.innerHTML = companies.map(company => {
+    const inCompany = trackScopedProblems().filter(p => splitCompanies(p.company).includes(company));
+    const solved = inCompany.filter(p => !isDue(p)).length;
+    const active = companyFilterValue === company;
+    return `
+      <button type="button" data-company="${escapeHtml(company)}"
+        class="company-pill${active ? ' active' : ''}">
+        <span>${escapeHtml(company)}</span>
+        <span class="company-pill-count">${solved}/${inCompany.length}</span>
+      </button>`;
+  }).join('');
+
+  list.querySelectorAll('[data-company]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const company = btn.dataset.company;
+      if (companyFilterValue === company) {
+        clearCompanyFilter();
+      } else {
+        applyCompanyFilter(company);
+      }
+    });
+  });
+}
+
+// Sets the company filter, reflects it in the chip, and jumps to the
+// dashboard table filtered to just that company.
+function applyCompanyFilter(company) {
+  companyFilterValue = company;
+  const chip = document.getElementById('company-filter-chip');
+  chip.classList.remove('hidden');
+  chip.classList.add('flex');
+  document.getElementById('company-filter-chip-label').textContent = company;
+
+  currentPage = 1;
+  showTab('dashboard');
+  renderTable();
+}
+function clearCompanyFilter() {
+  companyFilterValue = 'all';
+  const chip = document.getElementById('company-filter-chip');
+  chip.classList.add('hidden');
+  chip.classList.remove('flex');
+  currentPage = 1;
+  renderTable();
+}
+
 // Fires once per newly-closed period (not on every render) so a person
 // finds out, right after a week/month ends, that they came up short —
 // without repeating the same notice on every subsequent load.
@@ -2992,6 +3091,7 @@ document.getElementById('patterns-modal').addEventListener('click', (e) => e.sto
 document.addEventListener('click', closePatternsModal);
 window.addEventListener('resize', closePatternsModal);
 document.getElementById('pattern-filter-chip-clear').addEventListener('click', clearPatternFilter);
+document.getElementById('company-filter-chip-clear').addEventListener('click', clearCompanyFilter);
 
 (function initPatternsPanelToggle() {
   const body = document.getElementById('patterns-panel-body');
@@ -3006,6 +3106,22 @@ document.getElementById('pattern-filter-chip-clear').addEventListener('click', c
     const nowHidden = body.classList.toggle('hidden');
     chevron.classList.toggle('rotated', nowHidden);
     localStorage.setItem('patternsPanelCollapsed', nowHidden ? 'true' : 'false');
+  });
+})();
+
+(function initCompaniesPanelToggle() {
+  const body = document.getElementById('companies-panel-body');
+  const chevron = document.getElementById('companies-panel-chevron');
+  const toggleBtn = document.getElementById('companies-panel-toggle');
+  const collapsed = localStorage.getItem('companiesPanelCollapsed') === 'true';
+  if (collapsed) {
+    body.classList.add('hidden');
+    chevron.classList.add('rotated');
+  }
+  toggleBtn.addEventListener('click', () => {
+    const nowHidden = body.classList.toggle('hidden');
+    chevron.classList.toggle('rotated', nowHidden);
+    localStorage.setItem('companiesPanelCollapsed', nowHidden ? 'true' : 'false');
   });
 })();
 
@@ -3077,9 +3193,22 @@ function categoriesForTrack(track) {
   return [...new Set(pool.map(p => p.category).filter(Boolean))].sort();
 }
 
+// A problem's Company field can hold more than one company at once
+// (e.g. "Amazon, Meta" when a problem was asked at both). splitCompanies()
+// breaks that single string into its individual company names — same idea
+// as splitPatterns() below — so each company is treated as its own tag:
+// a problem tagged "Amazon, Meta" counts as 1 for Amazon and 1 for Meta,
+// instead of being lumped into one combo company called "Amazon, Meta".
+function splitCompanies(companyStr) {
+  return (companyStr || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
 function companiesForTrack(track) {
   const pool = track === 'All' ? problems : problems.filter(p => (p.track || 'DSA') === track);
-  return [...new Set(pool.map(p => p.company).filter(Boolean))].sort();
+  return [...new Set(pool.flatMap(p => splitCompanies(p.company)))].sort();
 }
 
 // A problem's Pattern field can hold more than one technique at once
@@ -3117,17 +3246,11 @@ function updatePatternDatalist() {
 }
 
 function renderCompanyOptions() {
-  const companies = companiesForTrack(currentTrack);
-  const filterSel = document.getElementById('filter-company');
-  const currentVal = filterSel.value;
-  filterSel.innerHTML = '<option value="all">All Companies</option>' + companies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  filterSel.value = companies.includes(currentVal) ? currentVal : 'all';
-
   updateCompanyDatalist();
 }
 
 function updateCompanyDatalist() {
-  const companies = [...new Set(problems.map(p => p.company).filter(Boolean))].sort();
+  const companies = [...new Set(problems.flatMap(p => splitCompanies(p.company)))].sort();
   document.getElementById('company-list').innerHTML = companies.map(c => `<option value="${escapeHtml(c)}">`).join('');
 }
 
@@ -3151,7 +3274,6 @@ function getFilteredProblems() {
   const trackFilter = document.getElementById('filter-track').value;
   const diff = document.getElementById('filter-difficulty').value;
   const tag = document.getElementById('filter-tag').value;
-  const company = document.getElementById('filter-company').value;
   const status = document.getElementById('filter-status').value;
 
   return trackScopedProblems()
@@ -3159,7 +3281,7 @@ function getFilteredProblems() {
     .filter(p => !search || p.title.toLowerCase().includes(search))
     .filter(p => diff === 'all' || p.difficulty === diff)
     .filter(p => tag === 'all' || p.category === tag)
-    .filter(p => company === 'all' || p.company === company)
+    .filter(p => companyFilterValue === 'all' || splitCompanies(p.company).includes(companyFilterValue))
     .filter(p => patternFilterValue === 'all' || splitPatterns(p.pattern).includes(patternFilterValue))
     .filter(p => {
       if (status === 'all') return true;
@@ -3199,6 +3321,7 @@ let currentPageIds = [];
 
 function renderTable() {
   renderPatternsPanel();
+  renderCompaniesPanel();
   const tbody = document.getElementById('problems-tbody');
   const list = getFilteredProblems();
   tbody.innerHTML = '';
@@ -3261,9 +3384,6 @@ function renderTable() {
       <td class="px-4 py-3"><span class="inline-block max-w-full">${diffBadge(p.difficulty)}</span></td>
       <td class="px-3 py-3">
         ${categoryBadge(p.category)}
-      </td>
-      <td class="px-3 py-3">
-        ${p.company ? companyBadge(p.company) : '<span class="text-xs text-mute">—</span>'}
       </td>
       <td class="px-4 py-3 font-num text-xs text-mute whitespace-nowrap">${fmtDisplay(p.lastRevised)}</td>
       <td class="px-2 py-3 text-center">
@@ -4094,7 +4214,7 @@ function applyRevision(id, outcome = 'good', minutes = null) {
 /* =========================================================
    FILTER EVENTS
 ========================================================= */
-['search-input','filter-track','filter-difficulty','filter-tag','filter-company','filter-status'].forEach(id => {
+['search-input','filter-track','filter-difficulty','filter-tag','filter-status'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => { currentPage = 1; renderTable(); });
   document.getElementById(id).addEventListener('change', () => { currentPage = 1; renderTable(); });
 });
@@ -4197,6 +4317,9 @@ document.querySelectorAll('[data-stat-filter]').forEach(card => {
     patternFilterValue = 'all';
     document.getElementById('pattern-filter-chip').classList.add('hidden');
     document.getElementById('pattern-filter-chip').classList.remove('flex');
+    companyFilterValue = 'all';
+    document.getElementById('company-filter-chip').classList.add('hidden');
+    document.getElementById('company-filter-chip').classList.remove('flex');
 
     if (kind === 'all') {
       diffSel.value = 'all';
