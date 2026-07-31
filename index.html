@@ -2269,7 +2269,7 @@ function renderHeatmap() {
     const c = counts[d] || 0;
     const intensity = c === 0 ? 0 : Math.ceil((c / max) * 4);
     const shades = [
-      'bg-surface2 border border-line',
+      'bg-brand/10 border border-brand/25',
       'bg-teal-500/40 border border-teal-400/50',
       'bg-brand-2/60 border border-brand-2/70',
       'bg-amber-500/70 border border-amber-400/70',
@@ -3199,11 +3199,21 @@ function categoriesForTrack(track) {
 // as splitPatterns() below — so each company is treated as its own tag:
 // a problem tagged "Amazon, Meta" counts as 1 for Amazon and 1 for Meta,
 // instead of being lumped into one combo company called "Amazon, Meta".
+//
+// Guard: a real company/source name is a few words at most. If a fragment
+// is much longer than that (e.g. notes or code that ended up in the
+// Company field from bad/legacy data), splitting it on every comma would
+// flood the Companies panel with garbage sentence fragments instead of
+// company names. So fragments over COMPANY_MAX_LEN are dropped here —
+// this only hides them from the company list/filter/count; the raw field
+// itself is untouched and still visible/editable on the problem's row.
+const COMPANY_MAX_LEN = 40;
 function splitCompanies(companyStr) {
   return (companyStr || '')
     .split(',')
     .map(s => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(s => s.length <= COMPANY_MAX_LEN);
 }
 
 function companiesForTrack(track) {
