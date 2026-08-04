@@ -3838,8 +3838,14 @@ function openDescriptionModal(id) {
   html, body { height:100%; }
   body { background:#0b0f1a; color:#f8fafc; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; margin:0; padding:2.5rem 2rem 0; max-width: 1400px; margin-inline:auto; line-height:1.7; min-height:100vh; }
   h1 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 1.5rem; margin: 0; }
-  .page-wrap { display:flex; align-items:stretch; gap:2.5rem; min-height: calc(100vh - 2.5rem); }
-  .main-col { flex: 1 1 0; min-width: 0; padding-bottom: 2rem; }
+  .page-wrap { display:flex; align-items:stretch; justify-content:center; min-height: calc(100vh - 2.5rem); }
+  .main-col { flex: 1 1 0; min-width: 0; width:100%; max-width: 760px; padding-bottom: 2rem; }
+  .notes-toggle-btn { display:inline-flex; align-items:center; gap:0.4rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; color:#c4b5fd; background: rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.4); border-radius:0.5rem; padding:0.5rem 0.9rem; cursor:pointer; transition: background .15s ease, border-color .15s ease, transform .12s ease; white-space:nowrap; }
+  .notes-toggle-btn:hover { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.6); transform: translateY(-1px); }
+  .notes-toggle-btn .dot { width:6px; height:6px; border-radius:50%; background:#10b981; display:none; flex-shrink:0; }
+  .notes-toggle-btn.has-notes .dot { display:inline-block; }
+  .notes-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; pointer-events:none; transition: opacity .25s ease; z-index:40; }
+  .notes-overlay.open { opacity:1; pointer-events:auto; }
   .header-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:0.6rem; }
   .title-link { display:inline-block; text-decoration:none; color:inherit; }
   .title-link h1 { display:inline-flex; align-items:center; gap:0.45rem; transition: color .15s ease; }
@@ -3861,10 +3867,13 @@ function openDescriptionModal(id) {
   .btn-struggled { background: rgba(239,68,68,0.08); color:#ef4444; border:1px solid rgba(239,68,68,0.35); transition: transform .12s ease, background .12s ease, border-color .12s ease; }
   .btn-struggled:hover { background: rgba(239,68,68,0.16); border-color: rgba(239,68,68,0.55); transform: translateY(-1px); }
   .outcome-note { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.72rem; color:#64748b; text-align:center; margin-top:0.6rem; }
-  .notes-col { flex: 0 0 420px; max-width: 420px; position: sticky; top: 0; align-self: stretch; padding: 2.5rem 0 2rem; }
+  .notes-col { position: fixed; top:0; right:0; height:100vh; width:50vw; max-width:none; padding: 2rem 2rem 2rem 0; background:#0b0f1a; z-index:50; transform: translateX(100%); transition: transform .3s ease; box-shadow: -12px 0 40px -10px rgba(0,0,0,0.6); }
+  .notes-col.open { transform: translateX(0); }
   .notes-section { height:100%; display:flex; flex-direction:column; padding-left: 2rem; border-left: 1px dashed #334155; }
   .notes-header { display:flex; align-items:center; justify-content:space-between; gap:0.75rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin-bottom:0.4rem; }
   .notes-header h2 { font-size:0.95rem; margin:0; color:#f8fafc; display:flex; align-items:center; gap:0.4rem; }
+  .notes-close-btn { background:none; border:none; color:#64748b; cursor:pointer; padding:0.2rem; display:inline-flex; align-items:center; justify-content:center; border-radius:0.4rem; transition: color .15s ease, background .15s ease; }
+  .notes-close-btn:hover { color:#f8fafc; background: rgba(255,255,255,0.08); }
 
   .notes-status { font-size:0.72rem; font-weight:600; color:#10b981; opacity:0; transition: opacity .3s ease; white-space:nowrap; }
   .notes-status.show { opacity:1; }
@@ -3879,8 +3888,8 @@ function openDescriptionModal(id) {
   .notes-shortcut { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.7rem; color:#475569; }
   @media (max-width: 900px) {
     .page-wrap { flex-direction: column; min-height:0; }
-    .notes-col { position:static; flex-basis:auto; max-width:100%; padding-top:0; }
-    .notes-section { border-left:none; border-top:1px dashed #334155; padding-left:0; padding-top:1.5rem; height:auto; }
+    .notes-col { width:100vw; padding: 1.5rem; }
+    .notes-section { border-left:none; padding-left:0; height:auto; }
     .notes-textarea { min-height:280px; }
   }
 </style>
@@ -3893,6 +3902,7 @@ function openDescriptionModal(id) {
         ${p.link
           ? `<a class="title-link" href="${escapeHtml(p.link)}" target="_blank" rel="noopener" title="Open problem link"><h1>${escapeHtml(p.title)}<i class="title-link-icon">↗</i></h1></a>`
           : `<h1>${escapeHtml(p.title)}</h1>`}
+        <button type="button" id="notes-toggle-btn" class="notes-toggle-btn${p.notes ? ' has-notes' : ''}" onclick="toggleNotes()"><span class="dot"></span>📝 Notes</button>
       </div>
       <div class="meta">
         <span class="badge" style="color:${diffColor};border-color:${diffColor}66;background:${diffColor}1a;">${escapeHtml(p.difficulty)}</span>
@@ -3910,11 +3920,13 @@ function openDescriptionModal(id) {
       <p class="outcome-note">Logs the result back in the tracker and closes this tab.</p>
     </div>
 
-    <div class="notes-col">
+    <div class="notes-overlay" id="notes-overlay" onclick="toggleNotes()"></div>
+    <div class="notes-col" id="notes-col">
       <div class="notes-section">
         <div class="notes-header">
           <h2>📝 Your Approach & Solution</h2>
           <span id="notes-status" class="notes-status">✓ Saved</span>
+          <button type="button" class="notes-close-btn" onclick="toggleNotes()" title="Close" aria-label="Close notes">✕</button>
         </div>
         <textarea id="solution-notes" class="notes-textarea" spellcheck="false" placeholder="How are you thinking about this one?
 
@@ -3932,6 +3944,10 @@ function openDescriptionModal(id) {
   </div>
   <script>
     const NOTES_PROBLEM_ID = ${JSON.stringify(p.id)};
+    function toggleNotes() {
+      document.getElementById('notes-col').classList.toggle('open');
+      document.getElementById('notes-overlay').classList.toggle('open');
+    }
     const notesEl = document.getElementById('solution-notes');
     const notesStatusEl = document.getElementById('notes-status');
     let notesDirty = false;
@@ -3973,6 +3989,7 @@ function openDescriptionModal(id) {
       if (window.opener && !window.opener.closed && typeof window.opener.saveNotesForProblem === 'function') {
         window.opener.saveNotesForProblem(NOTES_PROBLEM_ID, notesEl.value);
         notesDirty = false;
+        document.getElementById('notes-toggle-btn').classList.toggle('has-notes', notesEl.value.trim().length > 0);
         if (!silent) {
           notesStatusEl.classList.add('show');
           setTimeout(() => notesStatusEl.classList.remove('show'), 1800);
