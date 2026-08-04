@@ -3757,7 +3757,7 @@ function openNotesModal(id) {
       html += `
         <div>
           <h4 class="text-xs font-semibold uppercase tracking-wider text-mute mb-2">Approach</h4>
-          <p class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${escapeHtml(approachText)}</p>
+          <div class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${renderDescriptionHtml(approachText)}</div>
         </div>`;
     }
     if (codeBlocks.length) {
@@ -3772,7 +3772,7 @@ function openNotesModal(id) {
           <pre class="font-num text-[13px] leading-relaxed text-emerald-200 bg-emerald-950/30 border border-emerald-500/40 rounded-xl p-4 overflow-x-auto whitespace-pre"><code>${renderedCombined}</code></pre>
         </div>`;
     }
-    body.innerHTML = html || `<p class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${escapeHtml(raw)}</p>`;
+    body.innerHTML = html || `<div class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${renderDescriptionHtml(raw)}</div>`;
 
     const copyBtn = body.querySelector('[data-copy-code]');
     if (copyBtn) {
@@ -3872,11 +3872,11 @@ function openDescriptionModal(id) {
   .notes-textarea:focus { outline:none; border-color:#6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
   .notes-textarea::placeholder { color:#475569; }
   .notes-actions { display:flex; align-items:center; gap:0.9rem; margin-top:0.9rem; flex-wrap:wrap; flex-shrink:0; }
-  .notes-save-btn { background:#1e293b; border:1px solid #334155; color:#f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; padding:0.55rem 1.15rem; border-radius:0.5rem; cursor:pointer; transition: background .15s ease, border-color .15s ease, transform .12s ease; display:inline-flex; align-items:center; gap:0.4rem; }
-  .notes-save-btn:hover { background:#334155; border-color:#475569; transform: translateY(-1px); }
+  .notes-save-btn { background: linear-gradient(135deg, #6366f1, #818cf8); border:1px solid #6366f1; color:#f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; padding:0.6rem 1.3rem; border-radius:0.5rem; cursor:pointer; box-shadow: 0 2px 10px -3px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.2); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; display:inline-flex; align-items:center; gap:0.4rem; }
+  .notes-save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px -3px rgba(99,102,241,0.7), inset 0 1px 0 rgba(255,255,255,0.25); filter: brightness(1.05); }
+  .notes-image-btn { background: rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.35); color:#60a5fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; padding:0.55rem 1.1rem; border-radius:0.5rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition: background .15s ease, border-color .15s ease, transform .12s ease; }
+  .notes-image-btn:hover { background: rgba(96,165,250,0.16); border-color: rgba(96,165,250,0.55); transform: translateY(-1px); }
   .notes-shortcut { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.7rem; color:#475569; }
-  .notability-btn { background: rgba(255,178,54,0.08); border:1px solid rgba(255,178,54,0.35); color:#ffb236; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; padding:0.55rem 1.1rem; border-radius:0.5rem; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; transition: background .15s ease, border-color .15s ease, transform .12s ease; }
-  .notability-btn:hover { background: rgba(255,178,54,0.16); border-color: rgba(255,178,54,0.55); transform: translateY(-1px); }
   @media (max-width: 900px) {
     .page-wrap { flex-direction: column; min-height:0; }
     .notes-col { position:static; flex-basis:auto; max-width:100%; padding-top:0; }
@@ -3923,7 +3923,8 @@ function openDescriptionModal(id) {
 \`\`\`">${escapeHtml(p.notes || '')}</textarea>
         <div class="notes-actions">
           <button type="button" class="notes-save-btn" onclick="saveSolutionNotes()">💾 Save Notes</button>
-          <a class="notability-btn" href="https://notability.com/web" target="_blank" rel="noopener">📓 Open in Notability</a>
+          <button type="button" id="notes-image-btn" class="notes-image-btn">🖼️ Attach Image</button>
+          <input type="file" id="notes-image-input" accept="image/*" style="display:none;" />
           <span class="notes-shortcut">Ctrl/Cmd + S also saves &middot; auto-saves if you close this tab</span>
         </div>
       </div>
@@ -3934,6 +3935,34 @@ function openDescriptionModal(id) {
     const notesEl = document.getElementById('solution-notes');
     const notesStatusEl = document.getElementById('notes-status');
     let notesDirty = false;
+
+    // Attach a screenshot/export (e.g. from Notability) into the notes as
+    // an embedded base64 image — same trick the Description field already
+    // uses, so it works fully offline with no separate file storage.
+    document.getElementById('notes-image-btn').addEventListener('click', () => {
+      document.getElementById('notes-image-input').click();
+    });
+    document.getElementById('notes-image-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 3 * 1024 * 1024) {
+        alert('Image too large — please use one under 3MB');
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const tag = '\\n![note](' + reader.result + ')\\n';
+        const start = notesEl.selectionStart ?? notesEl.value.length;
+        const end = notesEl.selectionEnd ?? notesEl.value.length;
+        notesEl.value = notesEl.value.slice(0, start) + tag + notesEl.value.slice(end);
+        notesEl.focus();
+        notesDirty = true;
+        notesStatusEl.classList.remove('show');
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
 
     notesEl.addEventListener('input', () => {
       notesDirty = true;
