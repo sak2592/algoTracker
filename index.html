@@ -1215,7 +1215,7 @@ Or click 'Insert Image' above to embed an actual picture/diagram/screenshot." cl
     <p id="time-modal-subtitle" class="text-xs text-mute mb-4 truncate"></p>
     <div id="time-modal-presets" class="grid grid-cols-4 gap-2 mb-3"></div>
     <div class="flex items-center gap-2 mb-4">
-      <input id="time-modal-custom" type="number" min="0" max="1440" placeholder="Custom minutes" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
+      <input id="time-modal-custom" type="number" min="0" placeholder="Custom minutes" class="w-full bg-surface2 border border-line rounded-lg px-3 py-2 text-sm" />
       <span class="text-xs text-mute shrink-0">min</span>
     </div>
     <div class="flex items-center gap-3">
@@ -1354,19 +1354,6 @@ function saveRevisionLog() {
   scheduleSync();
 }
 let revisionLog = loadRevisionLog();
-// Same sanity cleanup as migrateProblem() above, applied to the revision
-// log's own per-entry minutes field (used e.g. in the calendar day view).
-(function sanitizeRevisionLogMinutes() {
-  const MAX_SANE_MINUTES = 10080; // 7 days
-  let changed = false;
-  revisionLog.forEach(entry => {
-    if (typeof entry.minutes === 'number' && entry.minutes > MAX_SANE_MINUTES) {
-      entry.minutes = '';
-      changed = true;
-    }
-  });
-  if (changed) saveRevisionLogRaw();
-})();
 
 /* =========================================================
    DELETION TRACKING — ids removed locally since the last
@@ -1466,17 +1453,6 @@ function migrateProblem(p) {
   if (typeof p.revisionCount !== 'number') {
     // Legacy data has no explicit counter — approximate it from history.
     p.revisionCount = (p.revisionHistory || []).length > 0 ? (p.revisionHistory.length - 1) : 0;
-  }
-  // Clean up "time taken" values that predate the input's sanity cap (a
-  // stray paste/typo could store something absurd, like minutes-since-epoch,
-  // which then rendered as a nonsensical multi-billion-hour figure in the
-  // table). Anything over a week's worth of minutes is clearly bad data.
-  const MAX_SANE_MINUTES = 10080; // 7 days
-  if (typeof p.lastTimeMinutes === 'number' && p.lastTimeMinutes > MAX_SANE_MINUTES) {
-    p.lastTimeMinutes = null;
-  }
-  if (Array.isArray(p.timeLog)) {
-    p.timeLog = p.timeLog.filter(entry => !(typeof entry.minutes === 'number' && entry.minutes > MAX_SANE_MINUTES));
   }
   return p;
 }
@@ -4294,15 +4270,6 @@ document.getElementById('time-modal-close').addEventListener('click', () => fina
 document.getElementById('time-modal-skip').addEventListener('click', () => finalizeRevision(null));
 document.getElementById('time-modal-save').addEventListener('click', () => {
   const val = parseInt(document.getElementById('time-modal-custom').value, 10);
-  // Sanity cap — a single revision session realistically never takes more
-  // than a day. Without this, a stray paste/typo/spinner-hold (e.g. a
-  // pasted timestamp) used to get stored as-is and would render as an
-  // absurd "29,762,913,935h" in the table.
-  const MAX_REVISION_MINUTES = 1440; // 24h
-  if (Number.isFinite(val) && val > MAX_REVISION_MINUTES) {
-    toast(`That's over 24h — please enter a realistic number of minutes`, 'alert-triangle', 'text-hard');
-    return;
-  }
   finalizeRevision(Number.isFinite(val) && val > 0 ? val : null);
 });
 document.getElementById('time-modal').addEventListener('click', (e) => {
