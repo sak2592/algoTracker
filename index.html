@@ -3766,10 +3766,10 @@ function openNotesModal(id) {
       html += `
         <div>
           <div class="flex items-center justify-between mb-2">
-            <h4 class="text-xs font-semibold uppercase tracking-wider text-mute">Code</h4>
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Code (Your Solution)</h4>
             <button data-copy-code class="text-[11px] font-medium text-mute hover:text-ink flex items-center gap-1 transition"><i data-lucide="copy" class="w-4 h-4"></i>Copy</button>
           </div>
-          <pre class="font-num text-[13px] leading-relaxed text-mute bg-black/40 border border-line rounded-xl p-4 overflow-x-auto whitespace-pre"><code>${renderedCombined}</code></pre>
+          <pre class="font-num text-[13px] leading-relaxed text-emerald-200 bg-emerald-950/30 border border-emerald-500/40 rounded-xl p-4 overflow-x-auto whitespace-pre"><code>${renderedCombined}</code></pre>
         </div>`;
     }
     body.innerHTML = html || `<p class="text-sm text-mute whitespace-pre-wrap leading-relaxed">${escapeHtml(raw)}</p>`;
@@ -3835,8 +3835,16 @@ function openDescriptionModal(id) {
 <title>${escapeHtml(p.title)} — Problem</title>
 <style>
   * { box-sizing: border-box; }
-  body { background:#0b0f1a; color:#f8fafc; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; margin:0; padding:2.5rem 2rem 4rem; max-width: 860px; margin-inline:auto; line-height:1.7; }
-  h1 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 1.5rem; margin: 0 0 0.6rem; }
+  html, body { height:100%; }
+  body { background:#0b0f1a; color:#f8fafc; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; margin:0; padding:2.5rem 2rem 0; max-width: 1400px; margin-inline:auto; line-height:1.7; min-height:100vh; }
+  h1 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 1.5rem; margin: 0; }
+  .page-wrap { display:flex; align-items:stretch; gap:2.5rem; min-height: calc(100vh - 2.5rem); }
+  .main-col { flex: 1 1 0; min-width: 0; padding-bottom: 2rem; }
+  .header-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:0.6rem; }
+  .title-link { display:inline-block; text-decoration:none; color:inherit; }
+  .title-link h1 { display:inline-flex; align-items:center; gap:0.45rem; transition: color .15s ease; }
+  .title-link:hover h1 { color:#818cf8; text-decoration:underline; text-underline-offset:4px; }
+  .title-link-icon { font-style:normal; font-size:1rem; color:#6366f1; opacity:0.85; }
   .meta { display:flex; flex-wrap:wrap; align-items:center; gap:0.6rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 0.8rem; margin-bottom: 2rem; }
   .badge { padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 600; font-size: 0.72rem; border: 1px solid; }
   .track { color:#94a3b8; border-color:#334155; background:#1e293b; }
@@ -3846,34 +3854,119 @@ function openDescriptionModal(id) {
   pre.desc { white-space: pre-wrap; font-size: 0.95rem; }
   a.back { display:inline-flex; align-items:center; gap:0.4rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; color:#94a3b8; text-decoration:none; margin-bottom:1.5rem; }
   a.back:hover { color:#f8fafc; }
-  .outcome-bar { position: sticky; bottom: 0; display:flex; gap:0.6rem; margin-top:2.5rem; padding:1rem 0 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(0deg, #0b0f1a 55%, transparent); }
+  .outcome-bar { position: sticky; bottom: 0; display:flex; gap:0.6rem; margin-top:2.5rem; padding:1rem 0 1.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(0deg, #0b0f1a 55%, transparent); }
   .outcome-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:0.4rem; padding:0.75rem 1rem; border-radius:0.6rem; font-size:0.85rem; font-weight:600; cursor:pointer; border:none; font-family:inherit; }
   .btn-nailed { background: linear-gradient(135deg, #10b981, #06b6d4); color:#04140f; box-shadow: 0 2px 10px -3px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.25); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; }
   .btn-nailed:hover { transform: translateY(-1px); box-shadow: 0 4px 16px -3px rgba(16,185,129,0.7), inset 0 1px 0 rgba(255,255,255,0.3); filter: brightness(1.05); }
   .btn-struggled { background: rgba(239,68,68,0.08); color:#ef4444; border:1px solid rgba(239,68,68,0.35); transition: transform .12s ease, background .12s ease, border-color .12s ease; }
   .btn-struggled:hover { background: rgba(239,68,68,0.16); border-color: rgba(239,68,68,0.55); transform: translateY(-1px); }
   .outcome-note { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.72rem; color:#64748b; text-align:center; margin-top:0.6rem; }
+  .notes-col { flex: 0 0 420px; max-width: 420px; position: sticky; top: 0; align-self: stretch; padding: 2.5rem 0 2rem; }
+  .notes-section { height:100%; display:flex; flex-direction:column; padding-left: 2rem; border-left: 1px dashed #334155; }
+  .notes-header { display:flex; align-items:center; justify-content:space-between; gap:0.75rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin-bottom:0.4rem; }
+  .notes-header h2 { font-size:0.95rem; margin:0; color:#f8fafc; display:flex; align-items:center; gap:0.4rem; }
+
+  .notes-status { font-size:0.72rem; font-weight:600; color:#10b981; opacity:0; transition: opacity .3s ease; white-space:nowrap; }
+  .notes-status.show { opacity:1; }
+  .notes-textarea { width:100%; flex:1 1 auto; min-height:240px; resize:none; background:#0f1523; border:1px solid #334155; border-radius:0.6rem; padding:0.9rem 1rem; color:#e2e8f0; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:0.85rem; line-height:1.65; }
+  .notes-textarea:focus { outline:none; border-color:#6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  .notes-textarea::placeholder { color:#475569; }
+  .notes-actions { display:flex; align-items:center; gap:0.9rem; margin-top:0.9rem; flex-wrap:wrap; flex-shrink:0; }
+  .notes-save-btn { background:#1e293b; border:1px solid #334155; color:#f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; padding:0.55rem 1.15rem; border-radius:0.5rem; cursor:pointer; transition: background .15s ease, border-color .15s ease, transform .12s ease; display:inline-flex; align-items:center; gap:0.4rem; }
+  .notes-save-btn:hover { background:#334155; border-color:#475569; transform: translateY(-1px); }
+  .notes-shortcut { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.7rem; color:#475569; }
+  .notability-btn { background: rgba(255,178,54,0.08); border:1px solid rgba(255,178,54,0.35); color:#ffb236; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:0.8rem; font-weight:600; padding:0.55rem 1.1rem; border-radius:0.5rem; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem; transition: background .15s ease, border-color .15s ease, transform .12s ease; }
+  .notability-btn:hover { background: rgba(255,178,54,0.16); border-color: rgba(255,178,54,0.55); transform: translateY(-1px); }
+  @media (max-width: 900px) {
+    .page-wrap { flex-direction: column; min-height:0; }
+    .notes-col { position:static; flex-basis:auto; max-width:100%; padding-top:0; }
+    .notes-section { border-left:none; border-top:1px dashed #334155; padding-left:0; padding-top:1.5rem; height:auto; }
+    .notes-textarea { min-height:280px; }
+  }
 </style>
 </head>
 <body>
-  <a class="back" href="javascript:window.close()">← Close this tab</a>
-  <h1>${escapeHtml(p.title)}</h1>
-  <div class="meta">
-    <span class="badge" style="color:${diffColor};border-color:${diffColor}66;background:${diffColor}1a;">${escapeHtml(p.difficulty)}</span>
-    <span class="badge track">${escapeHtml(p.track || 'DSA')}</span>
-    <span class="badge category">${escapeHtml(p.category)}</span>
-    ${splitPatterns(p.pattern).map(pat => `<span class="badge pattern">${escapeHtml(pat)}</span>`).join('')}
-    ${p.company ? `<span class="badge company">${escapeHtml(p.company)}</span>` : ''}
+  <div class="page-wrap">
+    <div class="main-col">
+      <a class="back" href="javascript:window.close()">← Close this tab</a>
+      <div class="header-row">
+        ${p.link
+          ? `<a class="title-link" href="${escapeHtml(p.link)}" target="_blank" rel="noopener" title="Open problem link"><h1>${escapeHtml(p.title)}<i class="title-link-icon">↗</i></h1></a>`
+          : `<h1>${escapeHtml(p.title)}</h1>`}
+      </div>
+      <div class="meta">
+        <span class="badge" style="color:${diffColor};border-color:${diffColor}66;background:${diffColor}1a;">${escapeHtml(p.difficulty)}</span>
+        <span class="badge track">${escapeHtml(p.track || 'DSA')}</span>
+        <span class="badge category">${escapeHtml(p.category)}</span>
+        ${splitPatterns(p.pattern).map(pat => `<span class="badge pattern">${escapeHtml(pat)}</span>`).join('')}
+        ${p.company ? `<span class="badge company">${escapeHtml(p.company)}</span>` : ''}
+      </div>
+      <pre class="desc">${bodyHtml}</pre>
+
+      <div class="outcome-bar">
+        <button type="button" class="outcome-btn btn-nailed" onclick="sendOutcome('good')">✓ Nailed It</button>
+        <button type="button" class="outcome-btn btn-struggled" onclick="sendOutcome('again')">↺ Struggled</button>
+      </div>
+      <p class="outcome-note">Logs the result back in the tracker and closes this tab.</p>
+    </div>
+
+    <div class="notes-col">
+      <div class="notes-section">
+        <div class="notes-header">
+          <h2>📝 Your Approach & Solution</h2>
+          <span id="notes-status" class="notes-status">✓ Saved</span>
+        </div>
+        <textarea id="solution-notes" class="notes-textarea" spellcheck="false" placeholder="How are you thinking about this one?
+
+\`\`\`
+// paste your code here
+\`\`\`">${escapeHtml(p.notes || '')}</textarea>
+        <div class="notes-actions">
+          <button type="button" class="notes-save-btn" onclick="saveSolutionNotes()">💾 Save Notes</button>
+          <a class="notability-btn" href="https://notability.com/web" target="_blank" rel="noopener">📓 Open in Notability</a>
+          <span class="notes-shortcut">Ctrl/Cmd + S also saves &middot; auto-saves if you close this tab</span>
+        </div>
+      </div>
+    </div>
   </div>
-  <pre class="desc">${bodyHtml}</pre>
-  <div class="outcome-bar">
-    <button type="button" class="outcome-btn btn-nailed" onclick="sendOutcome('good')">✓ Nailed It</button>
-    <button type="button" class="outcome-btn btn-struggled" onclick="sendOutcome('again')">↺ Struggled</button>
-  </div>
-  <p class="outcome-note">Logs the result back in the tracker and closes this tab.</p>
   <script>
+    const NOTES_PROBLEM_ID = ${JSON.stringify(p.id)};
+    const notesEl = document.getElementById('solution-notes');
+    const notesStatusEl = document.getElementById('notes-status');
+    let notesDirty = false;
+
+    notesEl.addEventListener('input', () => {
+      notesDirty = true;
+      notesStatusEl.classList.remove('show');
+    });
+
+    function saveSolutionNotes(silent) {
+      if (window.opener && !window.opener.closed && typeof window.opener.saveNotesForProblem === 'function') {
+        window.opener.saveNotesForProblem(NOTES_PROBLEM_ID, notesEl.value);
+        notesDirty = false;
+        if (!silent) {
+          notesStatusEl.classList.add('show');
+          setTimeout(() => notesStatusEl.classList.remove('show'), 1800);
+        }
+        return true;
+      }
+      if (!silent) alert('Could not reach the tracker tab. Please switch back to it and paste your notes there.');
+      return false;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveSolutionNotes();
+      }
+    });
+
+    // Best-effort autosave so nothing is lost if the tab gets closed without hitting Save.
+    window.addEventListener('beforeunload', () => { if (notesDirty) saveSolutionNotes(true); });
+
     function sendOutcome(outcome) {
       if (window.opener && !window.opener.closed && typeof window.opener.markRevised === 'function') {
+        saveSolutionNotes(true);
         window.opener.markRevised(${JSON.stringify(p.id)}, outcome);
         window.opener.focus();
         window.close();
@@ -4109,6 +4202,31 @@ function requeueProblem(id) {
 ========================================================= */
 let pendingRevision = null;
 const TIME_PRESETS = [5, 10, 15, 20, 30, 45, 60, 90];
+
+// Called from the "View Problem" popup tab (via window.opener) whenever the person saves what
+// they jotted down there - their approach/thought-process plus any ```code``` blocks. Reuses the
+// same `notes` field the Add/Edit form and notes-modal already read from, so nothing new to render.
+function saveNotesForProblem(id, notes) {
+  const p = problems.find(x => x.id === id);
+  if (!p) return false;
+  p.notes = notes;
+  p.updatedAt = Date.now();
+  saveProblems();
+  renderAll();
+  // If the Add/Edit form happens to be open for this same problem, its
+  // notes field was populated from p.notes at the moment the form opened
+  // and won't pick up this change on its own. Left stale, an unrelated
+  // "Update Problem" submit later would silently overwrite (delete) the
+  // note we just saved from the popup tab. Keep it in sync live so that
+  // can never happen.
+  const editIdEl = document.getElementById('edit-id');
+  const fNotesEl = document.getElementById('f-notes');
+  if (editIdEl && fNotesEl && editIdEl.value === id) {
+    fNotesEl.value = notes;
+  }
+  toast('Notes saved from problem tab', 'sticky-note', 'text-easy');
+  return true;
+}
 
 function markRevised(id, outcome = 'good') {
   const p = problems.find(x => x.id === id);
