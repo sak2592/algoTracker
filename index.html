@@ -1531,8 +1531,13 @@ function isDue(p) {
 }
 
 // Revision Queue window: overdue + due today + anything coming due in the next 7 days.
+// Excludes anything already revised today — otherwise a problem you just
+// marked Nailed It / Struggled (from the queue OR the AI tab) would still
+// satisfy "due within 7 days" off its freshly-recalculated nextReview and
+// appear to "not move" out of the queue until that date actually passed.
 function isDueWithinWeek(p) {
   if (!p.nextReview) return false;
+  if (p.lastRevised && String(p.lastRevised).slice(0, 10) === todayISO()) return false;
   const weekOut = addDaysISO(todayISO(), 7);
   return String(p.nextReview).slice(0, 10) <= weekOut;
 }
